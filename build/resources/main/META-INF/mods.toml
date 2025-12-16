@@ -1,0 +1,36 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="GNU GPL 3.0"
+issueTrackerURL=""
+
+[[mods]]
+modId="tongdarailway"
+version="0.0.4"
+displayName="TongDaRailway"
+logoFile="tongdarailway_logo.png"
+authors="hello_luckyhuang MarbleGate MagicalChao"
+description='''Auto-generates realistic railway networks in Minecraft worlds with Create Mod track system support.'''
+
+[[dependencies.tongdarailway]]
+    modId="forge"
+    mandatory=true
+    versionRange="[47,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.tongdarailway]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.20.1,1.21)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.tongdarailway]]
+    modId="create"
+    mandatory=true
+    versionRange="[0.5.1,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[mixins]]
+    config="tongdarailway.mixins.json"

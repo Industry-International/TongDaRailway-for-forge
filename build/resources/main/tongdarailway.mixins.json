@@ -1,0 +1,18 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.hxzhitang.tongdarailway.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "tongdarailway.refmap.json",
+  "mixins": [
+    "LevelChunkMixin",
+    "NoiseBasedChunkGeneratorMixin",
+    "TrackBlockEntityExtension",
+    "WorldGenRegionMixin"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
