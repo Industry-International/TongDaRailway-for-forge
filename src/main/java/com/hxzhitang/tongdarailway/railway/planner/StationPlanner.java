@@ -6,9 +6,12 @@ import com.hxzhitang.tongdarailway.structure.StationStructure;
 import com.hxzhitang.tongdarailway.util.MyMth;
 import com.hxzhitang.tongdarailway.util.MyRandom;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.BiomeTags;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.RandomState;
@@ -27,6 +30,8 @@ public class StationPlanner {
         this.regionPos = regionPos;
     }
 
+    private static final int MAX_OCEAN_RETRY = 10; // Max attempts to find non-ocean position
+
     // Generate station position
     public static List<StationGenInfo> generateStation(RegionPos regionPos, ServerLevel level, long seed) {
         ChunkGenerator gen = level.getChunkSource().getGenerator();
@@ -34,27 +39,39 @@ public class StationPlanner {
 
         long regionSeed = seed + regionPos.hashCode();
         List<StationGenInfo> result = new ArrayList<>();
-        int[] pos = MyRandom.generatePoints(regionSeed, CHUNK_GROUP_SIZE);
-        ChunkPos chunkPos = new ChunkPos(MyMth.chunkPosXFromRegionPos(regionPos, pos[0]), MyMth.chunkPosZFromRegionPos(regionPos, pos[1]));
-        int x = chunkPos.getBlockX(0);
-        int z = chunkPos.getBlockZ(0);
-        int y = gen.getBaseHeight(x, z, Heightmap.Types.WORLD_SURFACE, level, cfg);
-        // Ensure station height is seaLevel ~ seaLevel + max
-        int h = Math.max(y, level.getSeaLevel());
-        h = Math.min(h, level.getSeaLevel() + HEIGHT_MAX_INCREMENT);
 
-        // Generate underground or surface station based on height
-        StationStructure station;
-        int placeH;
-        if (h < y - 10) {
-            station = StationManager.getRandomUnderGroundStation(regionSeed);
-            placeH = h;
-        } else {
-            station = StationManager.getRandomNormalStation(regionSeed);
-            placeH = h - 10;
+        int x, z, y;
+        Holder<Biome> biome;
+
+        // Try to find non-ocean position, up to MAX_OCEAN_RETRY attempts
+        for (int attempt = 0; attempt <= MAX_OCEAN_RETRY; attempt++) {
+            int[] pos = MyRandom.generatePoints(regionSeed + attempt * 1000, CHUNK_GROUP_SIZE);
+            ChunkPos chunkPos = new ChunkPos(MyMth.chunkPosXFromRegionPos(regionPos, pos[0]), MyMth.chunkPosZFromRegionPos(regionPos, pos[1]));
+            x = chunkPos.getBlockX(0);
+            z = chunkPos.getBlockZ(0);
+            y = gen.getBaseHeight(x, z, Heightmap.Types.WORLD_SURFACE, level, cfg);
+
+            biome = level.getBiome(new BlockPos(x, y, z));
+            if (!biome.is(BiomeTags.IS_OCEAN)) {
+                // Found non-ocean position, generate station
+                int h = Math.max(y, level.getSeaLevel());
+                h = Math.min(h, level.getSeaLevel() + HEIGHT_MAX_INCREMENT);
+
+                StationStructure station;
+                int placeH;
+                if (h < y - 10) {
+                    station = StationManager.getRandomUnderGroundStation(regionSeed);
+                    placeH = h;
+                } else {
+                    station = StationManager.getRandomNormalStation(regionSeed);
+                    placeH = h - 10;
+                }
+                result.add(new StationGenInfo(station, new BlockPos(x, placeH, z)));
+                return result;
+            }
         }
-        result.add(new StationGenInfo(station, new BlockPos(x, placeH, z)));
 
+        // All attempts failed (entire region is ocean), return empty list
         return result;
     }
 
@@ -64,6 +81,11 @@ public class StationPlanner {
 
         List<StationGenInfo> thisStations = generateStation(regionPos, level, seed);
 
+        // Skip if current region has no station (ocean biome)
+        if (thisStations.isEmpty()) {
+            return result;
+        }
+
         List<StationGenInfo> north = generateStation(new RegionPos(regionPos.x(), regionPos.z() - 1), level, seed);
         List<StationGenInfo> south = generateStation(new RegionPos(regionPos.x(), regionPos.z() + 1), level, seed);
 
@@ -72,15 +94,23 @@ public class StationPlanner {
 
         var thisAssignedExits = assignExits(getExitsPos(thisStations));
 
-        var northAssignedExits = assignExits(getExitsPos(north));
-        var southAssignedExits = assignExits(getExitsPos(south));
-        var eastAssignedExits = assignExits(getExitsPos(east));
-        var westAssignedExits = assignExits(getExitsPos(west));
-
-        result.add(ConnectionGenInfo.getConnectionInfo(thisAssignedExits.get(3), eastAssignedExits.get(2), new Vec3(1, 0, 0)));
-        result.add(ConnectionGenInfo.getConnectionInfo(westAssignedExits.get(3), thisAssignedExits.get(2), new Vec3(1, 0, 0)));
-        result.add(ConnectionGenInfo.getConnectionInfo(northAssignedExits.get(1), thisAssignedExits.get(0), new Vec3(0, 0, 1)));
-        result.add(ConnectionGenInfo.getConnectionInfo(thisAssignedExits.get(1), southAssignedExits.get(0), new Vec3(0, 0, 1)));
+        // Only connect to neighbors that have stations (not ocean)
+        if (!east.isEmpty()) {
+            var eastAssignedExits = assignExits(getExitsPos(east));
+            result.add(ConnectionGenInfo.getConnectionInfo(thisAssignedExits.get(3), eastAssignedExits.get(2), new Vec3(1, 0, 0)));
+        }
+        if (!west.isEmpty()) {
+            var westAssignedExits = assignExits(getExitsPos(west));
+            result.add(ConnectionGenInfo.getConnectionInfo(westAssignedExits.get(3), thisAssignedExits.get(2), new Vec3(1, 0, 0)));
+        }
+        if (!north.isEmpty()) {
+            var northAssignedExits = assignExits(getExitsPos(north));
+            result.add(ConnectionGenInfo.getConnectionInfo(northAssignedExits.get(1), thisAssignedExits.get(0), new Vec3(0, 0, 1)));
+        }
+        if (!south.isEmpty()) {
+            var southAssignedExits = assignExits(getExitsPos(south));
+            result.add(ConnectionGenInfo.getConnectionInfo(thisAssignedExits.get(1), southAssignedExits.get(0), new Vec3(0, 0, 1)));
+        }
 
         return result;
     }
