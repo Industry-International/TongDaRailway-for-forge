@@ -4,3 +4,4 @@
 ## 仅支持1.20.1forge
 ## 原作者github:Hello-LuckyHuang 
 ## https://github.com/Hello-LuckyHuang
+## 本移植版是基于原作者0.0.4版本的模组进行的非官方移植

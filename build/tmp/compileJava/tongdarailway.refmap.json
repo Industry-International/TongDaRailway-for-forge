@@ -1,0 +1,32 @@
+{
+  "mappings": {
+    "com/hxzhitang/tongdarailway/mixin/WorldGenRegionMixin": {
+      "Lnet/minecraft/server/level/WorldGenRegion;ensureCanWrite(Lnet/minecraft/core/BlockPos;)Z": "Lnet/minecraft/server/level/WorldGenRegion;m_180807_(Lnet/minecraft/core/BlockPos;)Z",
+      "setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;II)Z": "Lnet/minecraft/server/level/WorldGenRegion;m_6933_(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;II)Z"
+    },
+    "com/hxzhitang/tongdarailway/mixin/LevelChunkMixin": {
+      "Lnet/minecraft/world/level/block/state/BlockState;hasBlockEntity()Z": "Lnet/minecraft/world/level/block/state/BlockState;m_155947_()Z",
+      "promotePendingBlockEntity(Lnet/minecraft/core/BlockPos;Lnet/minecraft/nbt/CompoundTag;)Lnet/minecraft/world/level/block/entity/BlockEntity;": "Lnet/minecraft/world/level/chunk/LevelChunk;m_62870_(Lnet/minecraft/core/BlockPos;Lnet/minecraft/nbt/CompoundTag;)Lnet/minecraft/world/level/block/entity/BlockEntity;",
+      "setBlockState(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Z)Lnet/minecraft/world/level/block/state/BlockState;": "Lnet/minecraft/world/level/chunk/LevelChunk;m_6978_(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Z)Lnet/minecraft/world/level/block/state/BlockState;"
+    },
+    "com/hxzhitang/tongdarailway/mixin/NoiseBasedChunkGeneratorMixin": {
+      "buildSurface": "Lnet/minecraft/world/level/levelgen/NoiseBasedChunkGenerator;m_214194_(Lnet/minecraft/server/level/WorldGenRegion;Lnet/minecraft/world/level/StructureManager;Lnet/minecraft/world/level/levelgen/RandomState;Lnet/minecraft/world/level/chunk/ChunkAccess;)V"
+    }
+  },
+  "data": {
+    "searge": {
+      "com/hxzhitang/tongdarailway/mixin/WorldGenRegionMixin": {
+        "Lnet/minecraft/server/level/WorldGenRegion;ensureCanWrite(Lnet/minecraft/core/BlockPos;)Z": "Lnet/minecraft/server/level/WorldGenRegion;m_180807_(Lnet/minecraft/core/BlockPos;)Z",
+        "setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;II)Z": "Lnet/minecraft/server/level/WorldGenRegion;m_6933_(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;II)Z"
+      },
+      "com/hxzhitang/tongdarailway/mixin/LevelChunkMixin": {
+        "Lnet/minecraft/world/level/block/state/BlockState;hasBlockEntity()Z": "Lnet/minecraft/world/level/block/state/BlockState;m_155947_()Z",
+        "promotePendingBlockEntity(Lnet/minecraft/core/BlockPos;Lnet/minecraft/nbt/CompoundTag;)Lnet/minecraft/world/level/block/entity/BlockEntity;": "Lnet/minecraft/world/level/chunk/LevelChunk;m_62870_(Lnet/minecraft/core/BlockPos;Lnet/minecraft/nbt/CompoundTag;)Lnet/minecraft/world/level/block/entity/BlockEntity;",
+        "setBlockState(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Z)Lnet/minecraft/world/level/block/state/BlockState;": "Lnet/minecraft/world/level/chunk/LevelChunk;m_6978_(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Z)Lnet/minecraft/world/level/block/state/BlockState;"
+      },
+      "com/hxzhitang/tongdarailway/mixin/NoiseBasedChunkGeneratorMixin": {
+        "buildSurface": "Lnet/minecraft/world/level/levelgen/NoiseBasedChunkGenerator;m_214194_(Lnet/minecraft/server/level/WorldGenRegion;Lnet/minecraft/world/level/StructureManager;Lnet/minecraft/world/level/levelgen/RandomState;Lnet/minecraft/world/level/chunk/ChunkAccess;)V"
+      }
+    }
+  }
+}
