@@ -1,10 +1,10 @@
 Manifest-Version: 1.0
-Specification-Title: tongdarailway
+Specification-Title: tongdarailway_for_forge
 Specification-Vendor: hello_luckyhuang MarbleGate MagicalChao
 Specification-Version: 1
 Implementation-Title: TongDaRailway
-Implementation-Version: 0.0.3-1
+Implementation-Version: 0.0.4
 Implementation-Vendor: hello_luckyhuang MarbleGate MagicalChao
-Implementation-Timestamp: 2025-12-17T14:51:48+0800
-MixinConfigs: tongdarailway.mixins.json
+Implementation-Timestamp: 2025-12-17T16:31:54+0800
+MixinConfigs: tongdarailway_for_forge.mixins.json
 

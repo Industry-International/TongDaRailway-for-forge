@@ -1,0 +1,7 @@
+{
+  "block.tongdarailway_for_forge.track_spawner": "Track Spawner",
+  "message.tongdarailway_for_forge.stations_1": "No normal stations loaded!",
+  "message.tongdarailway_for_forge.stations_2": "Failed to get random station!",
+  "message.tongdarailway_for_forge.info_1": "=== TongDaRailway Info ===",
+    "message.tongdarailway_for_forge.IDs_1": "Normal Station IDs:"
+}
