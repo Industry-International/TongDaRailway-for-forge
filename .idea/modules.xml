@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/TongDaRailway-for-forge.iml" filepath="$PROJECT_DIR$/.idea/modules/TongDaRailway-for-forge.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/TongDaRailway-for-forge.main.iml" filepath="$PROJECT_DIR$/.idea/modules/TongDaRailway-for-forge.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/TongDaRailway-for-forge.test.iml" filepath="$PROJECT_DIR$/.idea/modules/TongDaRailway-for-forge.test.iml" />
     </modules>
