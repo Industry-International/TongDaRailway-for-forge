@@ -68,6 +68,8 @@ repositories {
         url = "https://www.cursemaven.com"
         content { includeGroup "curse.maven" }
     }
+    // ========== 新增：Forge官方仓库（确保优先级） ==========
+    maven { url = 'https://maven.minecraftforge.net/' }
 }
 
 dependencies {
