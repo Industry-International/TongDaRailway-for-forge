@@ -1,6 +1,6 @@
 package com.hxzhitang.tongdarailway_for_forge.util;
 
-import com.simibubi.create.foundation.utility.VecHelper;
+import net.createmod.catnip.math.VecHelper;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.DoubleTag;
 import net.minecraft.nbt.ListTag;
