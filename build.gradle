@@ -58,30 +58,32 @@ minecraft {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
+    mavenCentral()
     mavenLocal()
 
     maven { url = "https://maven.createmod.net" } // Create, Ponder, Flywheel
     maven { url = "https://maven.tterrag.com" } // Registrate (old)
     maven { url = "https://maven.ithundxr.dev/mirror" } // Registrate
+    maven { url = "https://maven.ithundxr.dev/releases" } // Registrate
     maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" } // ForgeConfigAPIPort
     maven {
         url = "https://www.cursemaven.com"
         content { includeGroup "curse.maven" }
     }
-    // ========== 新增：Forge官方仓库（确保优先级） ==========
-    maven { url = 'https://maven.minecraftforge.net/' }
+    maven { url = 'https://maven.minecraftforge.net/' } // Forge official
+    maven { url = 'https://jitpack.io' } // JitPack for additional dependencies
 }
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-    // Create Mod 0.5.1f for Forge 1.20.1 via CurseMaven
-    // Create 0.5.1f file ID: 4835191, project ID: 328085
-    // 0.5.1f bundles Flywheel and uses com.simibubi.create.foundation.utility
-    implementation(fg.deobf("curse.maven:create-328085:4835191")) { transitive = false }
-
-    // Registrate via tterrag maven
+    implementation(fg.deobf("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false })
+    implementation(fg.deobf("net.createmod.ponder:Ponder-Forge-${minecraft_version}:${ponder_version}"))
+    compileOnly(fg.deobf("dev.engine-room.flywheel:flywheel-forge-api-${minecraft_version}:${flywheel_version}"))
+    runtimeOnly(fg.deobf("dev.engine-room.flywheel:flywheel-forge-${minecraft_version}:${flywheel_version}"))
     implementation(fg.deobf("com.tterrag.registrate:Registrate:${registrate_version}"))
+    compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.4.1"))
+    implementation("io.github.llamalad7:mixinextras-forge:0.4.1")
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }

@@ -5,8 +5,9 @@ import com.hxzhitang.tongdarailway_for_forge.railway.RailwayBuilder;
 import com.hxzhitang.tongdarailway_for_forge.railway.RegionPos;
 import com.hxzhitang.tongdarailway_for_forge.structure.TrackPutInfo;
 import com.hxzhitang.tongdarailway_for_forge.util.*;
-import com.simibubi.create.foundation.utility.AngleHelper;
-import com.simibubi.create.foundation.utility.VecHelper;
+
+import net.createmod.catnip.math.AngleHelper;
+import net.createmod.catnip.math.VecHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;

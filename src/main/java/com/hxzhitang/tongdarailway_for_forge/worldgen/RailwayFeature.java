@@ -17,7 +17,8 @@ import com.hxzhitang.tongdarailway_for_forge.util.MyMth;
 import com.mojang.serialization.Codec;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.content.trains.track.*;
-import com.simibubi.create.foundation.utility.Couple;
+
+import net.createmod.catnip.data.Couple;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.WorldGenLevel;
