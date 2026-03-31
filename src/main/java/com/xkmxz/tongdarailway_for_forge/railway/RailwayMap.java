@@ -1,5 +1,6 @@
 package com.xkmxz.tongdarailway_for_forge.railway;
 
+import com.xkmxz.tongdarailway_for_forge.Config;
 import com.xkmxz.tongdarailway_for_forge.railway.planner.RoutePlanner;
 import com.xkmxz.tongdarailway_for_forge.railway.planner.StationPlanner;
 import com.xkmxz.tongdarailway_for_forge.structure.TrackPutInfo;
@@ -16,7 +17,6 @@ import net.minecraft.world.phys.Vec3;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.xkmxz.tongdarailway_for_forge.Tongdarailway_for_forge.CHUNK_GROUP_SIZE;
 
 public class RailwayMap {
     public static final int samplingNum = 2; // Sampling number per chunk
@@ -75,7 +75,7 @@ public class RailwayMap {
                     for (int j = -1; j < 2; j++) {
                         int cx = (int) Math.floor(p.x) + i;
                         int cz = (int) Math.floor(p.z) + j;
-                        if (cx >= regionPos.x() * CHUNK_GROUP_SIZE && cx < (regionPos.x() + 1) * CHUNK_GROUP_SIZE && cz >= regionPos.z() * CHUNK_GROUP_SIZE && cz < (regionPos.z() + 1) * CHUNK_GROUP_SIZE) {
+                        if (cx >= regionPos.x() * Config.chunkGroupSize && cx < (regionPos.x() + 1) * Config.chunkGroupSize && cz >= regionPos.z() * Config.chunkGroupSize && cz < (regionPos.z() + 1) * Config.chunkGroupSize) {
                             routeMap.computeIfAbsent(new ChunkPos(cx, cz), k -> new HashSet<>())
                                     .add(route.way());
                         }

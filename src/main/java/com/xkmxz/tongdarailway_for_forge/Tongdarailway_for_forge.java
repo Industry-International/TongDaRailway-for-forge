@@ -35,8 +35,8 @@ public class Tongdarailway_for_forge {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     // Mod constants
-    public static final int CHUNK_GROUP_SIZE = 128;  // Size of a railway planning region in chunks
-    public static final int HEIGHT_MAX_INCREMENT = 100;  // Maximum height above sea level for railways
+  // Size of a railway planning region in chunks
+  // Maximum height above sea level for railways
 
     public Tongdarailway_for_forge(FMLJavaModLoadingContext context) {
         IEventBus modEventBus = context.getModEventBus();

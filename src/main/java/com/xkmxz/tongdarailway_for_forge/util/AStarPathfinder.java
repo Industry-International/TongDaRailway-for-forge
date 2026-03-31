@@ -4,7 +4,7 @@ import com.xkmxz.tongdarailway_for_forge.railway.RegionPos;
 
 import java.util.*;
 
-import static com.xkmxz.tongdarailway_for_forge.Tongdarailway_for_forge.CHUNK_GROUP_SIZE;
+import com.xkmxz.tongdarailway_for_forge.Config;
 import static com.xkmxz.tongdarailway_for_forge.railway.RailwayMap.samplingNum;
 
 // Reference: https://www.redblobgames.com/pathfinding/a-star/introduction.html
@@ -159,8 +159,8 @@ public class AStarPathfinder {
         int wx = worldPos[0];
         int wz = worldPos[1];
         return new int[]{
-                (wx - (centerRegionPos.x() - 1) * CHUNK_GROUP_SIZE * 16) * samplingNum / 16,
-                (wz - (centerRegionPos.z() - 1) * CHUNK_GROUP_SIZE * 16) * samplingNum / 16
+                (wx - (centerRegionPos.x() - 1) * Config.chunkGroupSize * 16) * samplingNum / 16,
+                (wz - (centerRegionPos.z() - 1) * Config.chunkGroupSize * 16) * samplingNum / 16
         };
     }
 
@@ -168,8 +168,8 @@ public class AStarPathfinder {
         int px = picPos[0];
         int pz = picPos[1];
         return new int[]{
-                px - CHUNK_GROUP_SIZE * samplingNum,
-                pz - CHUNK_GROUP_SIZE * samplingNum,
+                px - Config.chunkGroupSize * samplingNum,
+                pz - Config.chunkGroupSize * samplingNum,
                 picPos[2]
         };
     }

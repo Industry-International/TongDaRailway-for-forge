@@ -19,8 +19,7 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.*;
 
-import static com.xkmxz.tongdarailway_for_forge.Tongdarailway_for_forge.CHUNK_GROUP_SIZE;
-import static com.xkmxz.tongdarailway_for_forge.Tongdarailway_for_forge.HEIGHT_MAX_INCREMENT;
+import com.xkmxz.tongdarailway_for_forge.Config;
 
 // Station planning and connection planning
 public class StationPlanner {
@@ -45,7 +44,7 @@ public class StationPlanner {
 
         // Try to find non-ocean position, up to MAX_OCEAN_RETRY attempts
         for (int attempt = 0; attempt <= MAX_OCEAN_RETRY; attempt++) {
-            int[] pos = MyRandom.generatePoints(regionSeed + attempt * 1000, CHUNK_GROUP_SIZE);
+            int[] pos = MyRandom.generatePoints(regionSeed + attempt * 1000, Config.chunkGroupSize);
             ChunkPos chunkPos = new ChunkPos(MyMth.chunkPosXFromRegionPos(regionPos, pos[0]), MyMth.chunkPosZFromRegionPos(regionPos, pos[1]));
             x = chunkPos.getBlockX(0);
             z = chunkPos.getBlockZ(0);
@@ -55,7 +54,7 @@ public class StationPlanner {
             if (!biome.is(BiomeTags.IS_OCEAN)) {
                 // Found non-ocean position, generate station
                 int h = Math.max(y, level.getSeaLevel());
-                h = Math.min(h, level.getSeaLevel() + HEIGHT_MAX_INCREMENT);
+                h = Math.min(h, level.getSeaLevel() + Config.heightMaxIncrement);
 
                 StationStructure station;
                 int placeH;

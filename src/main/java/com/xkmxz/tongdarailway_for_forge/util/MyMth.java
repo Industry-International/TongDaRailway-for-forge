@@ -4,7 +4,7 @@ import com.xkmxz.tongdarailway_for_forge.railway.RegionPos;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.phys.Vec3;
 
-import static com.xkmxz.tongdarailway_for_forge.Tongdarailway_for_forge.CHUNK_GROUP_SIZE;
+import com.xkmxz.tongdarailway_for_forge.Config;
 
 public class MyMth {
     /**
@@ -14,7 +14,7 @@ public class MyMth {
      * @return chunk X position
      */
     public static int chunkPosXFromRegionPos(RegionPos regionPos, int chunkIndexX) {
-        return regionPos.x() * CHUNK_GROUP_SIZE + chunkIndexX;
+        return regionPos.x() * Config.chunkGroupSize + chunkIndexX;
     }
 
     /**
@@ -24,7 +24,7 @@ public class MyMth {
      * @return chunk Z position
      */
     public static int chunkPosZFromRegionPos(RegionPos regionPos, int chunkIndexZ) {
-        return regionPos.z() * CHUNK_GROUP_SIZE + chunkIndexZ;
+        return regionPos.z() * Config.chunkGroupSize + chunkIndexZ;
     }
 
     /**
@@ -33,7 +33,7 @@ public class MyMth {
      * @return region position
      */
     public static RegionPos regionPosFromChunkPos(ChunkPos chunkPos) {
-        return new RegionPos(Math.floorDiv(chunkPos.x, CHUNK_GROUP_SIZE), Math.floorDiv(chunkPos.z, CHUNK_GROUP_SIZE));
+        return new RegionPos(Math.floorDiv(chunkPos.x, Config.chunkGroupSize), Math.floorDiv(chunkPos.z, Config.chunkGroupSize));
     }
 
     public static ChunkPos getChunkPos(int x, int z) {
@@ -41,7 +41,7 @@ public class MyMth {
     }
 
     public static Vec3 inRegionPos2WorldPos(RegionPos regionPos, Vec3 vec3) {
-        return vec3.add(new Vec3(regionPos.x() * CHUNK_GROUP_SIZE * 16, 0, regionPos.z() * CHUNK_GROUP_SIZE * 16));
+        return vec3.add(new Vec3(regionPos.x() * Config.chunkGroupSize * 16, 0, regionPos.z() * Config.chunkGroupSize * 16));
     }
 
     public static int getSign(double number) {

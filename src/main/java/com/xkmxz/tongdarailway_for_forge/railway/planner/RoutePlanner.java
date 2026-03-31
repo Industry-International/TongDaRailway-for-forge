@@ -21,8 +21,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.xkmxz.tongdarailway_for_forge.Tongdarailway_for_forge.CHUNK_GROUP_SIZE;
-import static com.xkmxz.tongdarailway_for_forge.Tongdarailway_for_forge.HEIGHT_MAX_INCREMENT;
+import com.xkmxz.tongdarailway_for_forge.Config;
 import static com.xkmxz.tongdarailway_for_forge.railway.RailwayMap.samplingNum;
 
 // Pathfinding and railway route planning
@@ -35,7 +34,7 @@ public class RoutePlanner {
 
     // Get cost map from nine adjacent regions
     public int[][] getCostMap(WorldGenRegion level) {
-        int[][] heightMap = new int[CHUNK_GROUP_SIZE * samplingNum * 3][CHUNK_GROUP_SIZE * samplingNum * 3];
+        int[][] heightMap = new int[Config.chunkGroupSize * samplingNum * 3][Config.chunkGroupSize * samplingNum * 3];
         for (int[] ints : heightMap) {
             Arrays.fill(ints, Integer.MAX_VALUE);
         }
@@ -54,8 +53,8 @@ public class RoutePlanner {
                 }
                 for (int x = 0; x < map.length; x++) {
                     for (int z = 0; z < map[0].length; z++) {
-                        int picX = (i + 1) * CHUNK_GROUP_SIZE * samplingNum + x;
-                        int picZ = (j + 1) * CHUNK_GROUP_SIZE * samplingNum + z;
+                        int picX = (i + 1) * Config.chunkGroupSize * samplingNum + x;
+                        int picZ = (j + 1) * Config.chunkGroupSize * samplingNum + z;
                         heightMap[picX][picZ] = map[x][z];
                     }
                 }
@@ -72,14 +71,14 @@ public class RoutePlanner {
 
         // Create adaptive height sampler
         AdaptiveHeightSampler sampler = new AdaptiveHeightSampler(10, 3, 4, (x, z) -> {
-            int wx = (int) (x * (16.0 / samplingNum) + regionPos.x() * CHUNK_GROUP_SIZE * 16);
-            int wz = (int) (z * (16.0 / samplingNum) + regionPos.z() * CHUNK_GROUP_SIZE * 16);
+            int wx = (int) (x * (16.0 / samplingNum) + regionPos.x() * Config.chunkGroupSize * 16);
+            int wz = (int) (z * (16.0 / samplingNum) + regionPos.z() * Config.chunkGroupSize * 16);
             return gen.getBaseHeight(wx, wz, Heightmap.Types.WORLD_SURFACE_WG, serverLevel, cfg);
         });
 
         try {
             long startTime = System.currentTimeMillis();
-            sampler.buildQuadTree(CHUNK_GROUP_SIZE * samplingNum);
+            sampler.buildQuadTree(Config.chunkGroupSize * samplingNum);
             long endTime = System.currentTimeMillis();
             Tongdarailway_for_forge.LOGGER.info(" Build HeightMap time: {}ms", endTime - startTime);
         } catch (InterruptedException e) {
@@ -88,7 +87,7 @@ public class RoutePlanner {
             sampler.shutdown();
         }
 
-        int[][] heightMap = sampler.generateImage(CHUNK_GROUP_SIZE * samplingNum, CHUNK_GROUP_SIZE * samplingNum);
+        int[][] heightMap = sampler.generateImage(Config.chunkGroupSize * samplingNum, Config.chunkGroupSize * samplingNum);
 
         return heightMap;
     }
@@ -118,7 +117,7 @@ public class RoutePlanner {
             int h = heightMap[p[0]][p[1]];
             // Limit height range
             h = Math.max(h, seaLevel + 5);
-            h = Math.min(h, seaLevel + HEIGHT_MAX_INCREMENT);
+            h = Math.min(h, seaLevel + Config.heightMaxIncrement);
             adPath.add(new double[]{p[0], p[1], h});
         }
 
