@@ -182,7 +182,7 @@ dependencies {
     compileOnly(fg.deobf("dev.engine-room.flywheel:flywheel-forge-api-${minecraft_version}:${flywheel_version}"))
     runtimeOnly(fg.deobf("dev.engine-room.flywheel:flywheel-forge-${minecraft_version}:${flywheel_version}"))
     implementation(fg.deobf("com.tterrag.registrate:Registrate:${registrate_version}"))
-
+    runtimeOnly(fg.deobf("curse.maven:imblocker-483760:6065354"))
     // MixinExtras (修正：去除了重复的 implementation 行)
     compileOnly "io.github.llamalad7:mixinextras-common:0.4.1"
     annotationProcessor "io.github.llamalad7:mixinextras-common:0.4.1"
