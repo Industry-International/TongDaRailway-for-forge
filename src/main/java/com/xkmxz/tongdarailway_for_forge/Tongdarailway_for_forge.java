@@ -4,6 +4,7 @@ import com.xkmxz.tongdarailway_for_forge.blocks.ModBlockEntities;
 import com.xkmxz.tongdarailway_for_forge.blocks.ModBlocks;
 import com.xkmxz.tongdarailway_for_forge.blocks.TrackSpawnerBlockRenderer;
 import com.xkmxz.tongdarailway_for_forge.command.TongdaTestCommand;
+import com.xkmxz.tongdarailway_for_forge.datagen.ModDataGen;
 import com.xkmxz.tongdarailway_for_forge.event.FeatureRegistry;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
@@ -39,7 +40,6 @@ public class Tongdarailway_for_forge {
 
     public Tongdarailway_for_forge(FMLJavaModLoadingContext context) {
         IEventBus modEventBus = context.getModEventBus();
-
         // Register Feature
         FeatureRegistry.register(modEventBus);
 
@@ -49,6 +49,8 @@ public class Tongdarailway_for_forge {
         // Register blocks and block entities
         ModBlocks.register(modEventBus);
         ModBlockEntities.register(modEventBus);
+
+        modEventBus.addListener(ModDataGen::gatherData);
 
         // Register ourselves for server and other game events
         MinecraftForge.EVENT_BUS.register(this);

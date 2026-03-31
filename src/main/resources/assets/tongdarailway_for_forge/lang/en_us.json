@@ -1,3 +1,24 @@
 {
-  "block.tongdarailway_for_forge.track_spawner": "Track Spawner"
+  "block.tongdarailway_for_forge.track_spawner": "Track Spawner",
+  "commands.tongdarailway.spawn_normal_station.no_stations": "No normal stations loaded!",
+  "commands.tongdarailway.spawn_normal_station.failed_random": "Failed to get random station!",
+  "commands.tongdarailway.spawn_normal_station.success": "Spawned normal station (ID: %1$s) at %2$s\nExits: %3$s",
+  "commands.tongdarailway.spawn_normal_station.error": "Error spawning station: %1$s",
+  "commands.tongdarailway.info.header": "=== TongDaRailway Info ===",
+  "commands.tongdarailway.info.normal_stations": "Normal Stations: %s",
+  "commands.tongdarailway.info.underground_stations": "Underground Stations: %s",
+  "commands.tongdarailway.info.railway_templates": "Railway Templates: %s",
+  "commands.tongdarailway.info.footer": "=========================",
+  "commands.tongdarailway.info.normal_station_ids": "Normal Station IDs: %s",
+  "commands.tongdarailway.info.underground_station_ids": "Underground Station IDs: %s",
+  "commands.tongdarailway.region_status.header": "=== Region Status ===\nPlayer Pos: %1$s\nChunk: %2$s\nRegion: %3$s",
+  "commands.tongdarailway.region_status.builder_not_initialized": "RailwayBuilder not initialized! Try exploring new chunks first.",
+  "commands.tongdarailway.region_status.no_railway_data": "No railway data for this region! Region may not be generated yet.",
+  "commands.tongdarailway.region_status.statistics": "Stations planned: %1$s\nRoute chunks: %2$s\nTrack chunks: %3$s",
+  "commands.tongdarailway.region_status.station_positions_header": "--- Station Positions ---",
+  "commands.tongdarailway.region_status.station_entry": "%1$s: %2$s (distance: %3$s blocks)",
+  "commands.tongdarailway.teleport.builder_not_initialized": "RailwayBuilder not initialized!",
+  "commands.tongdarailway.teleport.no_stations_found": "No stations found in nearby regions!",
+  "commands.tongdarailway.teleport.success": "Teleported to station at %s",
+  "commands.tongdarailway.teleport.failed": "Failed to teleport: %s"
 }

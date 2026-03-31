@@ -29,19 +29,19 @@ public class TongdaTestCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
-            Commands.literal("tongda")
-                .requires(source -> source.hasPermission(2))
-                .then(Commands.literal("test")
-                    .then(Commands.literal("station")
-                        .executes(TongdaTestCommand::spawnNormalStation))
-                    .then(Commands.literal("underground")
-                        .executes(TongdaTestCommand::spawnUndergroundStation)))
-                .then(Commands.literal("info")
-                    .executes(TongdaTestCommand::showInfo))
-                .then(Commands.literal("region")
-                    .executes(TongdaTestCommand::showRegionStatus))
-                .then(Commands.literal("goto")
-                    .executes(TongdaTestCommand::teleportToNearestStation))
+                Commands.literal("tongda")
+                        .requires(source -> source.hasPermission(2))
+                        .then(Commands.literal("test")
+                                .then(Commands.literal("station")
+                                        .executes(TongdaTestCommand::spawnNormalStation))
+                                .then(Commands.literal("underground")
+                                        .executes(TongdaTestCommand::spawnUndergroundStation)))
+                        .then(Commands.literal("info")
+                                .executes(TongdaTestCommand::showInfo))
+                        .then(Commands.literal("region")
+                                .executes(TongdaTestCommand::showRegionStatus))
+                        .then(Commands.literal("goto")
+                                .executes(TongdaTestCommand::teleportToNearestStation))
         );
     }
 
@@ -49,7 +49,7 @@ public class TongdaTestCommand {
         CommandSourceStack source = context.getSource();
 
         if (StationManager.normalStation.isEmpty()) {
-            source.sendFailure(Component.literal("No normal stations loaded!"));
+            source.sendFailure(Component.translatable("commands.tongdarailway.spawn_normal_station.no_stations"));
             return 0;
         }
 
@@ -60,7 +60,7 @@ public class TongdaTestCommand {
 
             StationStructure station = StationManager.getRandomNormalStation(seed);
             if (station == null) {
-                source.sendFailure(Component.literal("Failed to get random station!"));
+                source.sendFailure(Component.translatable("commands.tongdarailway.spawn_normal_station.failed_random"));
                 return 0;
             }
 
@@ -75,15 +75,17 @@ public class TongdaTestCommand {
                 }
             }
 
-            source.sendSuccess(() -> Component.literal(
-                "Spawned normal station (ID: " + station.getId() + ") at " + playerPos.toShortString() +
-                "\nExits: " + station.getExitCount()
+            source.sendSuccess(() -> Component.translatable(
+                    "commands.tongdarailway.spawn_normal_station.success",
+                    station.getId(),
+                    playerPos.toShortString(),
+                    station.getExitCount()
             ), true);
 
             Tongdarailway_for_forge.LOGGER.info("Test command spawned normal station at {}", playerPos);
             return 1;
         } catch (Exception e) {
-            source.sendFailure(Component.literal("Error spawning station: " + e.getMessage()));
+            source.sendFailure(Component.translatable("commands.tongdarailway.spawn_normal_station.error", e.getMessage()));
             Tongdarailway_for_forge.LOGGER.error("Error spawning station", e);
             return 0;
         }
@@ -120,8 +122,8 @@ public class TongdaTestCommand {
             }
 
             source.sendSuccess(() -> Component.literal(
-                "Spawned underground station (ID: " + station.getId() + ") at " + playerPos.toShortString() +
-                "\nExits: " + station.getExitCount()
+                    "Spawned underground station (ID: " + station.getId() + ") at " + playerPos.toShortString() +
+                            "\nExits: " + station.getExitCount()
             ), true);
 
             Tongdarailway_for_forge.LOGGER.info("Test command spawned underground station at {}", playerPos);
@@ -140,23 +142,42 @@ public class TongdaTestCommand {
         int undergroundCount = StationManager.undergroundStation.size();
         int railwayCount = RoadbedManager.ground.size() + RoadbedManager.tunnel.size() + RoadbedManager.bridge.size();
 
-        String info = String.format(
-            "=== TongDaRailway Info ===\n" +
-            "Normal Stations: %d\n" +
-            "Underground Stations: %d\n" +
-            "Railway Templates: %d\n" +
-            "=========================",
-            normalCount, undergroundCount, railwayCount
-        );
+        // 主信息使用翻译键
+        source.sendSuccess(() -> Component.translatable(
+                "commands.tongdarailway.info.header"
+        ), false);
 
-        source.sendSuccess(() -> Component.literal(info), false);
+        source.sendSuccess(() -> Component.translatable(
+                "commands.tongdarailway.info.normal_stations",
+                normalCount
+        ), false);
+
+        source.sendSuccess(() -> Component.translatable(
+                "commands.tongdarailway.info.underground_stations",
+                undergroundCount
+        ), false);
+
+        source.sendSuccess(() -> Component.translatable(
+                "commands.tongdarailway.info.railway_templates",
+                railwayCount
+        ), false);
+
+        source.sendSuccess(() -> Component.translatable(
+                "commands.tongdarailway.info.footer"
+        ), false);
 
         // List station IDs
         if (!StationManager.normalStation.isEmpty()) {
-            source.sendSuccess(() -> Component.literal("Normal Station IDs: " + StationManager.normalStation.keySet()), false);
+            source.sendSuccess(() -> Component.translatable(
+                    "commands.tongdarailway.info.normal_station_ids",
+                    StationManager.normalStation.keySet()
+            ), false);
         }
         if (!StationManager.undergroundStation.isEmpty()) {
-            source.sendSuccess(() -> Component.literal("Underground Station IDs: " + StationManager.undergroundStation.keySet()), false);
+            source.sendSuccess(() -> Component.translatable(
+                    "commands.tongdarailway.info.underground_station_ids",
+                    StationManager.undergroundStation.keySet()
+            ), false);
         }
 
         return 1;
@@ -168,22 +189,22 @@ public class TongdaTestCommand {
         ChunkPos chunkPos = new ChunkPos(playerPos);
         RegionPos regionPos = MyMth.regionPosFromChunkPos(chunkPos);
 
-        source.sendSuccess(() -> Component.literal(
-            "=== Region Status ===\n" +
-            "Player Pos: " + playerPos.toShortString() + "\n" +
-            "Chunk: " + chunkPos + "\n" +
-            "Region: " + regionPos
+        source.sendSuccess(() -> Component.translatable(
+                "commands.tongdarailway.region_status.header",
+                playerPos.toShortString(),
+                chunkPos,
+                regionPos
         ), false);
 
         RailwayBuilder builder = RailwayBuilder.getInstance(source.getLevel().getSeed());
         if (builder == null) {
-            source.sendFailure(Component.literal("RailwayBuilder not initialized! Try exploring new chunks first."));
+            source.sendFailure(Component.translatable("commands.tongdarailway.region_status.builder_not_initialized"));
             return 0;
         }
 
         RailwayMap railwayMap = builder.regionRailways.get(regionPos);
         if (railwayMap == null) {
-            source.sendFailure(Component.literal("No railway data for this region! Region may not be generated yet."));
+            source.sendFailure(Component.translatable("commands.tongdarailway.region_status.no_railway_data"));
             return 0;
         }
 
@@ -191,22 +212,26 @@ public class TongdaTestCommand {
         int routeChunks = railwayMap.routeMap.size();
         int trackChunks = railwayMap.trackMap.size();
 
-        source.sendSuccess(() -> Component.literal(
-            "Stations planned: " + stationCount + "\n" +
-            "Route chunks: " + routeChunks + "\n" +
-            "Track chunks: " + trackChunks
+        source.sendSuccess(() -> Component.translatable(
+                "commands.tongdarailway.region_status.statistics",
+                stationCount,
+                routeChunks,
+                trackChunks
         ), false);
 
         // Show station positions
         if (!railwayMap.stations.isEmpty()) {
-            source.sendSuccess(() -> Component.literal("--- Station Positions ---"), false);
+            source.sendSuccess(() -> Component.translatable("commands.tongdarailway.region_status.station_positions_header"), false);
             for (StationPlanner.StationGenInfo station : railwayMap.stations) {
                 BlockPos pos = station.placePos();
                 String type = station.stationStructure() != null ?
-                    station.stationStructure().getType().name() : "UNKNOWN";
-                source.sendSuccess(() -> Component.literal(
-                    type + ": " + pos.toShortString() + " (distance: " +
-                    (int)Math.sqrt(playerPos.distSqr(pos)) + " blocks)"
+                        station.stationStructure().getType().name() : "UNKNOWN";
+                int distance = (int) Math.sqrt(playerPos.distSqr(pos));
+                source.sendSuccess(() -> Component.translatable(
+                        "commands.tongdarailway.region_status.station_entry",
+                        type,
+                        pos.toShortString(),
+                        distance
                 ), false);
             }
         }
@@ -222,7 +247,7 @@ public class TongdaTestCommand {
 
         RailwayBuilder builder = RailwayBuilder.getInstance(source.getLevel().getSeed());
         if (builder == null) {
-            source.sendFailure(Component.literal("RailwayBuilder not initialized!"));
+            source.sendFailure(Component.translatable("commands.tongdarailway.teleport.builder_not_initialized"));
             return 0;
         }
 
@@ -248,17 +273,17 @@ public class TongdaTestCommand {
         }
 
         if (nearestStation == null) {
-            source.sendFailure(Component.literal("No stations found in nearby regions!"));
+            source.sendFailure(Component.translatable("commands.tongdarailway.teleport.no_stations_found"));
             return 0;
         }
 
         final BlockPos targetPos = nearestStation;
         try {
             source.getEntityOrException().teleportTo(targetPos.getX() + 0.5, targetPos.getY() + 5, targetPos.getZ() + 0.5);
-            source.sendSuccess(() -> Component.literal("Teleported to station at " + targetPos.toShortString()), true);
+            source.sendSuccess(() -> Component.translatable("commands.tongdarailway.teleport.success", targetPos.toShortString()), true);
             return 1;
         } catch (Exception e) {
-            source.sendFailure(Component.literal("Failed to teleport: " + e.getMessage()));
+            source.sendFailure(Component.translatable("commands.tongdarailway.teleport.failed", e.getMessage()));
             return 0;
         }
     }
