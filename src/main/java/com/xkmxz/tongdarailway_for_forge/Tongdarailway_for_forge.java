@@ -13,7 +13,6 @@ import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -38,8 +37,8 @@ public class Tongdarailway_for_forge {
     public static final int CHUNK_GROUP_SIZE = 128;  // Size of a railway planning region in chunks
     public static final int HEIGHT_MAX_INCREMENT = 100;  // Maximum height above sea level for railways
 
-    public Tongdarailway_for_forge() {
-        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+    public Tongdarailway_for_forge(FMLJavaModLoadingContext context) {
+        IEventBus modEventBus = context.getModEventBus();
 
         // Register Feature
         FeatureRegistry.register(modEventBus);
@@ -55,7 +54,7 @@ public class Tongdarailway_for_forge {
         MinecraftForge.EVENT_BUS.register(this);
 
         // Register our mod's ModConfigSpec
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+        context.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {

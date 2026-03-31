@@ -20,7 +20,7 @@ public class FeatureRegistry {
             FEATURES.register("railway_and_station", () -> new RailwayFeature(RailwayFeatureConfig.CODEC));
 
     public static final ResourceKey<Feature<?>> RAILWAY_FEATURE_KEY = ResourceKey.create(Registries.FEATURE,
-            new ResourceLocation(Tongdarailway_for_forge.MODID, "railway_and_station"));
+            ResourceLocation.fromNamespaceAndPath(Tongdarailway_for_forge.MODID, "railway_and_station"));
 
     private FeatureRegistry() {
     }

@@ -50,7 +50,7 @@ public class StationStructure {
         this.id = id;
         this.type = type;
         try {
-            ResourceLocation location = new ResourceLocation(nameSpace, path);
+            ResourceLocation location = ResourceLocation.fromNamespaceAndPath(nameSpace, path);
             InputStream resourceStream = resourceManager
                     .getResource(location)
                     .orElseThrow()

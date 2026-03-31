@@ -14,7 +14,7 @@ import static com.xkmxz.tongdarailway_for_forge.datagen.ModFeatures.RAILWAY_CONF
 
 public class ModPlacements {
     public static final ResourceKey<PlacedFeature> RAILWAY_PLACED_FEATURE_KEY = ResourceKey.create(
-            Registries.PLACED_FEATURE, new ResourceLocation(Tongdarailway_for_forge.MODID, "railway_and_station"));
+            Registries.PLACED_FEATURE, ResourceLocation.fromNamespaceAndPath(Tongdarailway_for_forge.MODID, "railway_and_station"));
 
     public static void bootstrap(BootstapContext<PlacedFeature> pContext) {
         HolderGetter<ConfiguredFeature<?, ?>> lookup = pContext.lookup(Registries.CONFIGURED_FEATURE);

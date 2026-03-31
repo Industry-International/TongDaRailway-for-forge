@@ -127,7 +127,7 @@ public class RailwayTemplate {
     private BlockState parseBlockState(CompoundTag blockTag) {
         try {
             String blockName = blockTag.getString("Name");
-            ResourceLocation blockId = new ResourceLocation(blockName);
+            ResourceLocation blockId = ResourceLocation.parse(blockName);
             Block block = BuiltInRegistries.BLOCK.get(blockId);
 
             BlockState blockState = block.defaultBlockState();

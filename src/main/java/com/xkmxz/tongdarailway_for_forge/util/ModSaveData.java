@@ -9,6 +9,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.storage.DimensionDataStorage;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,7 +33,7 @@ public class ModSaveData extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag pCompoundTag) {
+    public @NotNull CompoundTag save(CompoundTag pCompoundTag) {
         ListTag listTag = new ListTag();
         regionRailways.forEach((pos, railwayMap) -> {
             CompoundTag compoundTag = new CompoundTag();

@@ -11,7 +11,7 @@ import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 
 public class ModFeatures {
     public static final ResourceKey<ConfiguredFeature<?, ?>> RAILWAY_CONFIGURED_FEATURE_KEY = ResourceKey.create(
-            Registries.CONFIGURED_FEATURE, new ResourceLocation(Tongdarailway_for_forge.MODID, "railway_and_station"));
+            Registries.CONFIGURED_FEATURE, ResourceLocation.fromNamespaceAndPath(Tongdarailway_for_forge.MODID, "railway_and_station"));
 
     public static void bootstrap(BootstapContext<ConfiguredFeature<?, ?>> pContext) {
         pContext.register(RAILWAY_CONFIGURED_FEATURE_KEY,
