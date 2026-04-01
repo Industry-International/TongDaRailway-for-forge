@@ -1,0 +1,4 @@
+// 1.20.1	2026-03-31T21:25:33.6429682	Registries
+1df6d729f7cffbbaae792a64bd662f72e21bd4fd data/tongdarailway_for_forge/forge/biome_modifier/add_railway_and_station.json
+0e3a2134ac9d447ec0f2ce4f10afd7b313052015 data/tongdarailway_for_forge/worldgen/configured_feature/railway_and_station.json
+4ae09e45996da2f77e262cebf51da664ea7f1eeb data/tongdarailway_for_forge/worldgen/placed_feature/railway_and_station.json

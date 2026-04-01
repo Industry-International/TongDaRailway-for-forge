@@ -1,3 +1,24 @@
 {
-  "block.tongdarailway_for_forge.track_spawner": "轨道刷怪笼"
+  "block.tongdarailway_for_forge.track_spawner": "轨道刷怪笼",
+  "commands.tongdarailway.spawn_normal_station.no_stations": "没有加载普通车站！",
+  "commands.tongdarailway.spawn_normal_station.failed_random": "获取随机车站失败！",
+  "commands.tongdarailway.spawn_normal_station.success": "已在 %2$s 生成普通车站（ID：%1$s）\n出口数量：%3$s",
+  "commands.tongdarailway.spawn_normal_station.error": "生成车站时出错：%1$s",
+  "commands.tongdarailway.info.header": "=== 通达铁路信息 ===",
+  "commands.tongdarailway.info.normal_stations": "普通车站：%s 个",
+  "commands.tongdarailway.info.underground_stations": "地下车站：%s 个",
+  "commands.tongdarailway.info.railway_templates": "铁路模板：%s 个",
+  "commands.tongdarailway.info.footer": "=========================",
+  "commands.tongdarailway.info.normal_station_ids": "普通车站ID：%s",
+  "commands.tongdarailway.info.underground_station_ids": "地下车站ID：%s",
+  "commands.tongdarailway.region_status.header": "=== 区域状态 ===\n玩家位置：%1$s\n区块：%2$s\n区域：%3$s",
+  "commands.tongdarailway.region_status.builder_not_initialized": "铁路生成器未初始化！请先探索新区块。",
+  "commands.tongdarailway.region_status.no_railway_data": "该区域没有铁路数据！区域可能尚未生成。",
+  "commands.tongdarailway.region_status.statistics": "规划车站：%1$s 个\n路线区块：%2$s 个\n轨道区块：%3$s 个",
+  "commands.tongdarailway.region_status.station_positions_header": "--- 车站位置 ---",
+  "commands.tongdarailway.region_status.station_entry": "%1$s：%2$s（距离：%3$s 格）",
+  "commands.tongdarailway.teleport.builder_not_initialized": "铁路生成器未初始化！",
+  "commands.tongdarailway.teleport.no_stations_found": "附近区域没有找到车站！",
+  "commands.tongdarailway.teleport.success": "已传送到车站位置 %s",
+  "commands.tongdarailway.teleport.failed": "传送失败：%s"
 }

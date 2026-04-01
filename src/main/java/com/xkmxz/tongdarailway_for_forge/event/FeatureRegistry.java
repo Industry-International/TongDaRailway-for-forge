@@ -1,0 +1,31 @@
+package com.xkmxz.tongdarailway_for_forge.event;
+
+import com.xkmxz.tongdarailway_for_forge.Tongdarailway_for_forge;
+import com.xkmxz.tongdarailway_for_forge.worldgen.RailwayFeatureConfig;
+import com.xkmxz.tongdarailway_for_forge.worldgen.RailwayFeature;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
+
+public class FeatureRegistry {
+    public static final DeferredRegister<Feature<?>> FEATURES =
+            DeferredRegister.create(ForgeRegistries.FEATURES, Tongdarailway_for_forge.MODID);
+
+    public static final RegistryObject<RailwayFeature> RAILWAY_FEATURE =
+            FEATURES.register("railway_and_station", () -> new RailwayFeature(RailwayFeatureConfig.CODEC));
+
+    public static final ResourceKey<Feature<?>> RAILWAY_FEATURE_KEY = ResourceKey.create(Registries.FEATURE,
+            ResourceLocation.fromNamespaceAndPath(Tongdarailway_for_forge.MODID, "railway_and_station"));
+
+    private FeatureRegistry() {
+    }
+
+    public static void register(IEventBus eventBus) {
+        FEATURES.register(eventBus);
+    }
+}
