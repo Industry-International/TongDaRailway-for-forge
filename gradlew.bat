@@ -24,9 +24,6 @@
 @rem Set local scope for the variables with windows NT shell
 if "%OS%"=="Windows_NT" setlocal
 
-@rem Override JAVA_HOME with Java 17
-set JAVA_HOME=C:\ProgramData\scoop\apps\openjdk17\current
-
 set DIRNAME=%~dp0
 if "%DIRNAME%"=="" set DIRNAME=.
 @rem This is normally unused
