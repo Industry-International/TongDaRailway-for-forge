@@ -34,8 +34,8 @@ jobs:
         uses: gradle/actions/setup-gradle@v4.4.2 # 更新到最新稳定版
           
           # 【新增】手动赋予执行权限
-                - name: Grant execute permission for gradlew
-                run: chmod +x gradlew
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
 
       - name: Build with Gradle Wrapper
         run: ./gradlew build
