@@ -25,15 +25,6 @@ public class ModDataGen {
         ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
         CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
 
-        // Language files
-        generator.addProvider(
-                event.includeClient(),
-                new ModLanguageProviderENUS(packOutput)
-        );
-        generator.addProvider(
-                event.includeClient(),
-                new ModLanguageProviderZHCN(packOutput)
-        );
 
         // Block states
         generator.addProvider(
