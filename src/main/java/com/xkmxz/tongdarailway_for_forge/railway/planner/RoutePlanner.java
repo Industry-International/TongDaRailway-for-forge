@@ -12,7 +12,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.WorldGenRegion;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LeavesBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.RandomState;
@@ -21,9 +25,10 @@ import net.minecraft.world.phys.Vec3;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.xkmxz.tongdarailway_for_forge.Config.chunkGroupSize;
-import static com.xkmxz.tongdarailway_for_forge.Config.heightMaxIncrement;
+import com.xkmxz.tongdarailway_for_forge.Config;
 import static com.xkmxz.tongdarailway_for_forge.railway.RailwayMap.samplingNum;
+
+
 
 // Pathfinding and railway route planning
 public class RoutePlanner {
@@ -33,9 +38,10 @@ public class RoutePlanner {
         this.regionPos = regionPos;
     }
 
+    // Get cost map from nine adjacent regions
     // ==================== 旧版方法 ====================
     public int[][] getCostMap(WorldGenRegion level) {
-        int[][] heightMap = new int[chunkGroupSize * samplingNum * 3][chunkGroupSize * samplingNum * 3];
+        int[][] heightMap = new int[Config.chunkGroupSize * samplingNum * 3][Config.chunkGroupSize * samplingNum * 3];
         for (int[] ints : heightMap) {
             Arrays.fill(ints, Integer.MAX_VALUE);
         }
@@ -54,8 +60,8 @@ public class RoutePlanner {
                 }
                 for (int x = 0; x < map.length; x++) {
                     for (int z = 0; z < map[0].length; z++) {
-                        int picX = (i + 1) * chunkGroupSize * samplingNum + x;
-                        int picZ = (j + 1) * chunkGroupSize * samplingNum + z;
+                        int picX = (i + 1) * Config.chunkGroupSize * samplingNum + x;
+                        int picZ = (j + 1) * Config.chunkGroupSize * samplingNum + z;
                         heightMap[picX][picZ] = map[x][z];
                     }
                 }
@@ -64,19 +70,88 @@ public class RoutePlanner {
         return heightMap;
     }
 
+    public CellCost[][] getCostMapWithObstacles(WorldGenRegion level, ServerLevel serverLevel) {
+        int size = Config.chunkGroupSize * samplingNum * 3;
+        CellCost[][] costMap = new CellCost[size][size];
+
+        return costMap;
+    }
+
+    private CellCost computeCellCost(ServerLevel level, int worldX, int worldZ, int surfaceHeight) {
+
+        int railY = surfaceHeight + 1;
+        boolean blocked = false;
+        double cost = 0.0;
+
+        BlockPos pos = new BlockPos(worldX, railY, worldZ);
+        BlockState state = level.getBlockState(pos);
+
+        if (!state.isAir() && state.isSolid()) {
+            blocked = true;
+            cost = Double.POSITIVE_INFINITY;
+        } else if (state.getBlock() == Blocks.WATER) {
+            cost += 15.0;
+        } else if (state.getBlock() instanceof LeavesBlock) {
+            cost += 2.0;
+        }
+
+        return new CellCost(surfaceHeight, cost, blocked);
+    }
+
+    private double[][] buildObstacleCostMap(ServerLevel level, int[][] heightMap) {
+        int size = heightMap.length;
+        double[][] costMap = new double[size][size];
+
+        for (int x = 0; x < size; x++) {
+            for (int z = 0; z < size; z++) {
+                int worldX = (int) ((x - Config.chunkGroupSize * samplingNum) * (16.0 / samplingNum)
+                        + regionPos.x() * Config.chunkGroupSize * 16);
+                int worldZ = (int) ((z - Config.chunkGroupSize * samplingNum) * (16.0 / samplingNum)
+                        + regionPos.z() * Config.chunkGroupSize * 16);
+                int surfaceY = heightMap[x][z];
+
+                int railY = surfaceY + 1;
+                BlockPos pos = new BlockPos(worldX, railY, worldZ);
+                BlockState state = level.getBlockState(pos);
+
+                double cost = 0.0;
+                if (!state.isAir() && state.isSolid()) {
+                    cost = Double.POSITIVE_INFINITY;
+                } else if (state.getBlock() == Blocks.WATER || state.is(BlockTags.GEODE_INVALID_BLOCKS)) {
+                    cost = 15.0;
+                } else if (state.getBlock() instanceof LeavesBlock) {
+                    cost = 2.0;
+                } else if (state.is(BlockTags.BEDS)) {
+                    cost = 100.0;
+                }
+                costMap[x][z] = cost;
+            }
+        }
+        return costMap;
+    }
+
+
+    public List<int[]> findPathAvoidObstacles(int[][] heightMap, int[] start, int[] end, ServerLevel level) {
+        double[][] obstacleCost = buildObstacleCostMap(level, heightMap);
+
+        return AStarPathfinder.findPath(heightMap, start, end, (x, z) -> obstacleCost[x][z]);
+    }
+
     private int[][] getHeightMap(ServerLevel serverLevel, RegionPos regionPos) {
+        // Height adaptive sampling height map
         ChunkGenerator gen = serverLevel.getChunkSource().getGenerator();
         RandomState cfg = serverLevel.getChunkSource().randomState();
 
+        // Create adaptive height sampler
         AdaptiveHeightSampler sampler = new AdaptiveHeightSampler(10, 3, 4, (x, z) -> {
-            int wx = (int) (x * (16.0 / samplingNum) + regionPos.x() * chunkGroupSize * 16);
-            int wz = (int) (z * (16.0 / samplingNum) + regionPos.z() * chunkGroupSize * 16);
+            int wx = (int) (x * (16.0 / samplingNum) + regionPos.x() * Config.chunkGroupSize * 16);
+            int wz = (int) (z * (16.0 / samplingNum) + regionPos.z() * Config.chunkGroupSize * 16);
             return gen.getBaseHeight(wx, wz, Heightmap.Types.WORLD_SURFACE_WG, serverLevel, cfg);
         });
 
         try {
             long startTime = System.currentTimeMillis();
-            sampler.buildQuadTree(chunkGroupSize * samplingNum);
+            sampler.buildQuadTree(Config.chunkGroupSize * samplingNum);
             long endTime = System.currentTimeMillis();
             Tongdarailway_for_forge.LOGGER.info(" Build HeightMap time: {}ms", endTime - startTime);
         } catch (InterruptedException e) {
@@ -85,37 +160,53 @@ public class RoutePlanner {
             sampler.shutdown();
         }
 
-        int[][] heightMap = sampler.generateImage(chunkGroupSize * samplingNum, chunkGroupSize * samplingNum);
+        int[][] heightMap = sampler.generateImage(Config.chunkGroupSize * samplingNum, Config.chunkGroupSize * samplingNum);
+
         return heightMap;
     }
 
+    /**
+     * Plan route
+     * @param way route map
+     */
     public ResultWay getWay(List<int[]> way, int[][] costMap, StationPlanner.ConnectionGenInfo connectionGenInfo, ServerLevel level) {
         List<int[]> handledHeightWay = handleHeight(way, level, costMap, connectionGenInfo);
+        // Convert to region coordinate system
         handledHeightWay = handledHeightWay.stream().map(AStarPathfinder::pic2RegionPos).toList();
         return connectTrackNew3(handledHeightWay, connectionGenInfo);
     }
 
+    /**
+     * Handle height smoothing
+     * @param path direct path (picture coordinates)
+     * @param level server level
+     */
     public List<int[]> handleHeight(List<int[]> path, ServerLevel level, int[][] heightMap, StationPlanner.ConnectionGenInfo con) {
         List<double[]> adPath = new LinkedList<>();
         int seaLevel = level.getSeaLevel();
 
+        // Initial pass
         for (int[] p : path) {
             int h = heightMap[p[0]][p[1]];
+            // Limit height range
             h = Math.max(h, seaLevel + 5);
-            h = Math.min(h, seaLevel + heightMaxIncrement);
+            h = Math.min(h, seaLevel + Config.heightMaxIncrement);
             adPath.add(new double[]{p[0], p[1], h});
         }
 
         adPath.get(0)[2] = con.connectStart()[2];
         adPath.get(adPath.size() - 1)[2] = con.connectEnd()[2];
 
+        // Height adjustment
         adPath = adjustmentHeight(adPath);
 
+        // Smoothing (excluding endpoints)
         int max = adPath.stream().mapToInt(p -> (int) p[2]).max().orElse(0);
         int min = adPath.stream().mapToInt(p -> (int) p[2]).min().orElse(0);
         int framed2 = ((max - min) / 2) + 1;
 
         if (adPath.size() > framed2 * 2 && framed2 * 2 >= 3) {
+            // Smooth middle
             List<double[]> adPath1 = new ArrayList<>();
             adPath1.add(adPath.get(0));
             for (int i = 1; i < adPath.size() - 1; i++) {
@@ -139,6 +230,7 @@ public class RoutePlanner {
             adPath1.add(adPath.get(adPath.size() - 1));
             adPath = adPath1;
 
+            // Smooth endpoints
             double fh = con.connectStart()[2];
             double lh = con.connectEnd()[2];
             if (adPath.size() > framed2 * 2 + 20) {
@@ -169,6 +261,7 @@ public class RoutePlanner {
         double hEnd = path.get(path.size() - 1)[2];
         double pNum = path.size() - 1;
 
+        // Calculate relative height
         List<double[]> heightList0 = new ArrayList<>();
         Map<Integer, List<double[]>> heightGroups = new HashMap<>();
         double distance = 0;
@@ -187,6 +280,7 @@ public class RoutePlanner {
         }
         double sec = Math.sqrt(Math.pow(heightList0.size(), 2) + Math.pow(Math.abs(hStart - hEnd), 2)) / (heightList0.size());
 
+        // Main loop
         for (int j = 0; j < heightList0.size(); j++) {
             double[] thisPoint = heightList0.get(j);
             adjustedPath.add(new double[]{thisPoint[0], thisPoint[1], thisPoint[2]});
@@ -215,6 +309,7 @@ public class RoutePlanner {
                 }
             }
         }
+        // Add back base height
         for (int i = 0; i < adjustedPath.size(); i++) {
             double[] p = adjustedPath.get(i);
             p[2] += hStart * ((pNum - i) / pNum) + hEnd * (i / pNum);

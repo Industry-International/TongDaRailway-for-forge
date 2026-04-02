@@ -11,22 +11,27 @@ public class Config {
 
     private static final ForgeConfigSpec.BooleanValue ENABLE_TRACK_SPAWNER = BUILDER
             .comment("Can the track spawner work")
+            .translation("config.tongdarailway.enableTrackSpawner")  // ✅ 新增
             .define("enableTrackSpawner", true);
 
     private static final ForgeConfigSpec.BooleanValue GENERATE_TRACK_SPAWNER = BUILDER
             .comment("Can the track spawner be generated")
+            .translation("config.tongdarailway.generateTrackSpawner")
             .define("generateTrackSpawner", true);
 
     private static final ForgeConfigSpec.BooleanValue PLACE_TRACKS_USING_TRACK_SPAWNER = BUILDER
             .comment("Use the track spawner,(true) or place rails during world generation.(false)")
+            .translation("config.tongdarailway.placeTracksUsingTrackSpawner")  // ✅ 新增
             .define("placeTracksUsingTrackSpawner", true);
     // 新增配置项
     private static final ForgeConfigSpec.IntValue CHUNK_GROUP_SIZE = BUILDER
             .comment("Size of a railway planning region in chunks")
+            .translation("config.tongdarailway.chunkGroupSize")
             .defineInRange("chunkGroupSize", 128, 16, 512);
 
     private static final ForgeConfigSpec.IntValue HEIGHT_MAX_INCREMENT = BUILDER
             .comment("Maximum height increment for railway elevation changes")
+            .translation("config.tongdarailway.heightMaxIncrement")
             .defineInRange("heightMaxIncrement", 100, 10, 500);
 
     static final ForgeConfigSpec SPEC = BUILDER.build();
