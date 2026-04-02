@@ -12,7 +12,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.WorldGenRegion;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LeavesBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.RandomState;
@@ -23,6 +27,8 @@ import java.util.stream.Collectors;
 
 import com.xkmxz.tongdarailway_for_forge.Config;
 import static com.xkmxz.tongdarailway_for_forge.railway.RailwayMap.samplingNum;
+
+
 
 // Pathfinding and railway route planning
 public class RoutePlanner {
@@ -62,6 +68,73 @@ public class RoutePlanner {
         }
 
         return heightMap;
+    }
+
+    public CellCost[][] getCostMapWithObstacles(WorldGenRegion level, ServerLevel serverLevel) {
+        int size = Config.chunkGroupSize * samplingNum * 3;
+        CellCost[][] costMap = new CellCost[size][size];
+
+        return costMap;
+    }
+
+    private CellCost computeCellCost(ServerLevel level, int worldX, int worldZ, int surfaceHeight) {
+
+        int railY = surfaceHeight + 1;
+        boolean blocked = false;
+        double cost = 0.0;
+
+        BlockPos pos = new BlockPos(worldX, railY, worldZ);
+        BlockState state = level.getBlockState(pos);
+
+        if (!state.isAir() && state.isSolid()) {
+            blocked = true;
+            cost = Double.POSITIVE_INFINITY;
+        } else if (state.getBlock() == Blocks.WATER) {
+            cost += 15.0;
+        } else if (state.getBlock() instanceof LeavesBlock) {
+            cost += 2.0;
+        }
+
+        return new CellCost(surfaceHeight, cost, blocked);
+    }
+
+    private double[][] buildObstacleCostMap(ServerLevel level, int[][] heightMap) {
+        int size = heightMap.length;
+        double[][] costMap = new double[size][size];
+
+        for (int x = 0; x < size; x++) {
+            for (int z = 0; z < size; z++) {
+                int worldX = (int) ((x - Config.chunkGroupSize * samplingNum) * (16.0 / samplingNum)
+                        + regionPos.x() * Config.chunkGroupSize * 16);
+                int worldZ = (int) ((z - Config.chunkGroupSize * samplingNum) * (16.0 / samplingNum)
+                        + regionPos.z() * Config.chunkGroupSize * 16);
+                int surfaceY = heightMap[x][z];
+
+                int railY = surfaceY + 1;
+                BlockPos pos = new BlockPos(worldX, railY, worldZ);
+                BlockState state = level.getBlockState(pos);
+
+                double cost = 0.0;
+                if (!state.isAir() && state.isSolid()) {
+                    cost = Double.POSITIVE_INFINITY;
+                } else if (state.getBlock() == Blocks.WATER || state.is(BlockTags.GEODE_INVALID_BLOCKS)) {
+                    cost = 15.0;
+                } else if (state.getBlock() instanceof LeavesBlock) {
+                    cost = 2.0;
+                } else if (state.is(BlockTags.BEDS)) {
+                    cost = 100.0;
+                }
+                costMap[x][z] = cost;
+            }
+        }
+        return costMap;
+    }
+
+
+    public List<int[]> findPathAvoidObstacles(int[][] heightMap, int[] start, int[] end, ServerLevel level) {
+        double[][] obstacleCost = buildObstacleCostMap(level, heightMap);
+
+        return AStarPathfinder.findPath(heightMap, start, end, (x, z) -> obstacleCost[x][z]);
     }
 
     private int[][] getHeightMap(ServerLevel serverLevel, RegionPos regionPos) {
@@ -404,9 +477,7 @@ public class RoutePlanner {
                 double u = Math.abs(sTest[1]);
                 double targetT = u <= 1 ? 3 : u * 2;
 
-                if (t < targetT) {
-                    return false;
-                }
+                return !(t < targetT);
             }
         }
 
