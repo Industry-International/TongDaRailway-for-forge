@@ -1,25 +1,25 @@
-package com.hxzhitang.tongdarailway_for_forge.util;
+package com.xkmxz.tongdarailway_for_forge.util;
 
-import com.hxzhitang.tongdarailway_for_forge.railway.RegionPos;
+import com.xkmxz.tongdarailway_for_forge.railway.RegionPos;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.phys.Vec3;
 
-import static com.hxzhitang.tongdarailway_for_forge.Tongdarailway_for_forge.CHUNK_GROUP_SIZE;
+import static com.xkmxz.tongdarailway_for_forge.Config.chunkGroupSize;
 
 public class MyMth {
 
     // ========== 原有方法 ==========
     public static int chunkPosXFromRegionPos(RegionPos regionPos, int chunkIndexX) {
-        return regionPos.x() * CHUNK_GROUP_SIZE + chunkIndexX;
+        return regionPos.x() * chunkGroupSize + chunkIndexX;
     }
 
     public static int chunkPosZFromRegionPos(RegionPos regionPos, int chunkIndexZ) {
-        return regionPos.z() * CHUNK_GROUP_SIZE + chunkIndexZ;
+        return regionPos.z() * chunkGroupSize + chunkIndexZ;
     }
 
     public static RegionPos regionPosFromChunkPos(ChunkPos chunkPos) {
-        return new RegionPos(Math.floorDiv(chunkPos.x, CHUNK_GROUP_SIZE), Math.floorDiv(chunkPos.z, CHUNK_GROUP_SIZE));
+        return new RegionPos(Math.floorDiv(chunkPos.x, chunkGroupSize), Math.floorDiv(chunkPos.z, chunkGroupSize));
     }
 
     public static ChunkPos getChunkPos(int x, int z) {
@@ -27,7 +27,7 @@ public class MyMth {
     }
 
     public static Vec3 inRegionPos2WorldPos(RegionPos regionPos, Vec3 vec3) {
-        return vec3.add(new Vec3(regionPos.x() * CHUNK_GROUP_SIZE * 16, 0, regionPos.z() * CHUNK_GROUP_SIZE * 16));
+        return vec3.add(new Vec3(regionPos.x() * chunkGroupSize * 16, 0, regionPos.z() * chunkGroupSize * 16));
     }
 
     public static int getSign(double number) {

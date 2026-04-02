@@ -1,11 +1,11 @@
-package com.hxzhitang.tongdarailway_for_forge.railway.planner;
+package com.xkmxz.tongdarailway_for_forge.railway.planner;
 
-import com.hxzhitang.tongdarailway_for_forge.Tongdarailway_for_forge;
-import com.hxzhitang.tongdarailway_for_forge.railway.RegionPos;
-import com.hxzhitang.tongdarailway_for_forge.structure.StationManager;
-import com.hxzhitang.tongdarailway_for_forge.structure.StationStructure;
-import com.hxzhitang.tongdarailway_for_forge.util.MyMth;
-import com.hxzhitang.tongdarailway_for_forge.util.MyRandom;
+import com.xkmxz.tongdarailway_for_forge.Tongdarailway_for_forge;
+import com.xkmxz.tongdarailway_for_forge.railway.RegionPos;
+import com.xkmxz.tongdarailway_for_forge.structure.StationManager;
+import com.xkmxz.tongdarailway_for_forge.structure.StationStructure;
+import com.xkmxz.tongdarailway_for_forge.util.MyMth;
+import com.xkmxz.tongdarailway_for_forge.util.MyRandom;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -20,8 +20,8 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.*;
 
-import static com.hxzhitang.tongdarailway_for_forge.Tongdarailway_for_forge.CHUNK_GROUP_SIZE;
-import static com.hxzhitang.tongdarailway_for_forge.Tongdarailway_for_forge.HEIGHT_MAX_INCREMENT;
+import static com.xkmxz.tongdarailway_for_forge.Config.chunkGroupSize;
+import static com.xkmxz.tongdarailway_for_forge.Config.heightMaxIncrement;
 
 public class StationPlanner {
     private final RegionPos regionPos;
@@ -44,7 +44,7 @@ public class StationPlanner {
         Holder<Biome> biome;
 
         for (int attempt = 0; attempt <= MAX_OCEAN_RETRY; attempt++) {
-            int[] pos = MyRandom.generatePoints(regionSeed + attempt * 1000, CHUNK_GROUP_SIZE);
+            int[] pos = MyRandom.generatePoints(regionSeed + attempt * 1000, chunkGroupSize);
             ChunkPos chunkPos = new ChunkPos(MyMth.chunkPosXFromRegionPos(regionPos, pos[0]), MyMth.chunkPosZFromRegionPos(regionPos, pos[1]));
             x = chunkPos.getBlockX(0);
             z = chunkPos.getBlockZ(0);
@@ -53,7 +53,7 @@ public class StationPlanner {
             biome = level.getBiome(new BlockPos(x, y, z));
             if (!biome.is(BiomeTags.IS_OCEAN)) {
                 int h = Math.max(y, level.getSeaLevel());
-                h = Math.min(h, level.getSeaLevel() + HEIGHT_MAX_INCREMENT);
+                h = Math.min(h, level.getSeaLevel() + heightMaxIncrement);
 
                 StationStructure station;
                 int placeH;

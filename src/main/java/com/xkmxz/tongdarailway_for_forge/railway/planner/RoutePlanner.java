@@ -1,10 +1,10 @@
-package com.hxzhitang.tongdarailway_for_forge.railway.planner;
+package com.xkmxz.tongdarailway_for_forge.railway.planner;
 
-import com.hxzhitang.tongdarailway_for_forge.Tongdarailway_for_forge;
-import com.hxzhitang.tongdarailway_for_forge.railway.RailwayBuilder;
-import com.hxzhitang.tongdarailway_for_forge.railway.RegionPos;
-import com.hxzhitang.tongdarailway_for_forge.structure.TrackPutInfo;
-import com.hxzhitang.tongdarailway_for_forge.util.*;
+import com.xkmxz.tongdarailway_for_forge.Tongdarailway_for_forge;
+import com.xkmxz.tongdarailway_for_forge.railway.RailwayBuilder;
+import com.xkmxz.tongdarailway_for_forge.railway.RegionPos;
+import com.xkmxz.tongdarailway_for_forge.structure.TrackPutInfo;
+import com.xkmxz.tongdarailway_for_forge.util.*;
 
 import net.createmod.catnip.math.AngleHelper;
 import net.createmod.catnip.math.VecHelper;
@@ -21,9 +21,9 @@ import net.minecraft.world.phys.Vec3;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.hxzhitang.tongdarailway_for_forge.Tongdarailway_for_forge.CHUNK_GROUP_SIZE;
-import static com.hxzhitang.tongdarailway_for_forge.Tongdarailway_for_forge.HEIGHT_MAX_INCREMENT;
-import static com.hxzhitang.tongdarailway_for_forge.railway.RailwayMap.samplingNum;
+import static com.xkmxz.tongdarailway_for_forge.Config.chunkGroupSize;
+import static com.xkmxz.tongdarailway_for_forge.Config.heightMaxIncrement;
+import static com.xkmxz.tongdarailway_for_forge.railway.RailwayMap.samplingNum;
 
 // Pathfinding and railway route planning
 public class RoutePlanner {
@@ -35,7 +35,7 @@ public class RoutePlanner {
 
     // ==================== 旧版方法 ====================
     public int[][] getCostMap(WorldGenRegion level) {
-        int[][] heightMap = new int[CHUNK_GROUP_SIZE * samplingNum * 3][CHUNK_GROUP_SIZE * samplingNum * 3];
+        int[][] heightMap = new int[chunkGroupSize * samplingNum * 3][chunkGroupSize * samplingNum * 3];
         for (int[] ints : heightMap) {
             Arrays.fill(ints, Integer.MAX_VALUE);
         }
@@ -54,8 +54,8 @@ public class RoutePlanner {
                 }
                 for (int x = 0; x < map.length; x++) {
                     for (int z = 0; z < map[0].length; z++) {
-                        int picX = (i + 1) * CHUNK_GROUP_SIZE * samplingNum + x;
-                        int picZ = (j + 1) * CHUNK_GROUP_SIZE * samplingNum + z;
+                        int picX = (i + 1) * chunkGroupSize * samplingNum + x;
+                        int picZ = (j + 1) * chunkGroupSize * samplingNum + z;
                         heightMap[picX][picZ] = map[x][z];
                     }
                 }
@@ -69,14 +69,14 @@ public class RoutePlanner {
         RandomState cfg = serverLevel.getChunkSource().randomState();
 
         AdaptiveHeightSampler sampler = new AdaptiveHeightSampler(10, 3, 4, (x, z) -> {
-            int wx = (int) (x * (16.0 / samplingNum) + regionPos.x() * CHUNK_GROUP_SIZE * 16);
-            int wz = (int) (z * (16.0 / samplingNum) + regionPos.z() * CHUNK_GROUP_SIZE * 16);
+            int wx = (int) (x * (16.0 / samplingNum) + regionPos.x() * chunkGroupSize * 16);
+            int wz = (int) (z * (16.0 / samplingNum) + regionPos.z() * chunkGroupSize * 16);
             return gen.getBaseHeight(wx, wz, Heightmap.Types.WORLD_SURFACE_WG, serverLevel, cfg);
         });
 
         try {
             long startTime = System.currentTimeMillis();
-            sampler.buildQuadTree(CHUNK_GROUP_SIZE * samplingNum);
+            sampler.buildQuadTree(chunkGroupSize * samplingNum);
             long endTime = System.currentTimeMillis();
             Tongdarailway_for_forge.LOGGER.info(" Build HeightMap time: {}ms", endTime - startTime);
         } catch (InterruptedException e) {
@@ -85,7 +85,7 @@ public class RoutePlanner {
             sampler.shutdown();
         }
 
-        int[][] heightMap = sampler.generateImage(CHUNK_GROUP_SIZE * samplingNum, CHUNK_GROUP_SIZE * samplingNum);
+        int[][] heightMap = sampler.generateImage(chunkGroupSize * samplingNum, chunkGroupSize * samplingNum);
         return heightMap;
     }
 
@@ -102,7 +102,7 @@ public class RoutePlanner {
         for (int[] p : path) {
             int h = heightMap[p[0]][p[1]];
             h = Math.max(h, seaLevel + 5);
-            h = Math.min(h, seaLevel + HEIGHT_MAX_INCREMENT);
+            h = Math.min(h, seaLevel + heightMaxIncrement);
             adPath.add(new double[]{p[0], p[1], h});
         }
 
