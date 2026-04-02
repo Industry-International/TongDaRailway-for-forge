@@ -57,6 +57,9 @@ public class Tongdarailway_for_forge {
 
         // Register our mod's ModConfigSpec
         context.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+
+        // ✅ 最小化添加：注册配置屏幕（仅客户端）
+        modEventBus.addListener(this::registerConfigScreen);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
@@ -82,6 +85,16 @@ public class Tongdarailway_for_forge {
                 // Register block entity renderer
                 BlockEntityRenderers.register(ModBlockEntities.TRACK_SPAWNER.get(), TrackSpawnerBlockRenderer::new);
             });
+        }
+    }
+    // ✅ 新增：注册配置界面（自动兼容 Configured，无依赖也能编译）
+    private void registerConfigScreen(final FMLClientSetupEvent event) {
+        // 使用反射避免强依赖 Configured
+        try {
+            Class<?> configuredClass = Class.forName("com.mrcrayfish.configured.api.forge.ForgeConfigScreen");
+            // Configured 会自动处理，这里只需要确保类存在即可
+        } catch (ClassNotFoundException e) {
+            // Configured 未安装，忽略
         }
     }
 }

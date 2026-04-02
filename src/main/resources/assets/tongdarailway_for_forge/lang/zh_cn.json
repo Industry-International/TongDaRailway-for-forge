@@ -20,5 +20,19 @@
   "commands.tongdarailway.teleport.builder_not_initialized": "铁路生成器未初始化！",
   "commands.tongdarailway.teleport.no_stations_found": "附近区域没有找到车站！",
   "commands.tongdarailway.teleport.success": "已传送到车站位置 %s",
-  "commands.tongdarailway.teleport.failed": "传送失败：%s"
+  "commands.tongdarailway.teleport.failed": "传送失败：%s",
+  "commands.tongdarailway.spawn_underground_station.no_stations": "没有已加载的地下车站！",
+  "commands.tongdarailway.spawn_underground_station.failed_random": "无法获取随机地下车站！",
+  "commands.tongdarailway.spawn_underground_station.success": "已生成地下车站 (ID: %s) 位于 %s\n出口数量: %s",
+  "commands.tongdarailway.spawn_underground_station.error": "生成车站时出错: %s",
+  "config.tongdarailway.enableTrackSpawner": "启用轨道生成器",
+  "config.tongdarailway.enableTrackSpawner.tooltip": "控制轨道生成器是否能正常工作",
+  "config.tongdarailway.generateTrackSpawner": "生成轨道生成器",
+  "config.tongdarailway.generateTrackSpawner.tooltip": "世界生成时是否在结构中放置轨道生成器方块",
+  "config.tongdarailway.placeTracksUsingTrackSpawner": "使用生成器放置轨道",
+  "config.tongdarailway.placeTracksUsingTrackSpawner.tooltip": "true: 使用轨道生成器动态放置轨道\nfalse: 世界生成时直接放置铁轨",
+  "config.tongdarailway.chunkGroupSize": "区块组大小",
+  "config.tongdarailway.chunkGroupSize.tooltip": "铁路规划区域的区块大小，影响铁路密度（16-512）",
+  "config.tongdarailway.heightMaxIncrement": "最大高度增量",
+  "config.tongdarailway.heightMaxIncrement.tooltip": "铁路海拔变化的最大高度差，影响坡度（10-500）"
 }

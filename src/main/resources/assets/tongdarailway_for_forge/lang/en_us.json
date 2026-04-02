@@ -20,5 +20,19 @@
   "commands.tongdarailway.teleport.builder_not_initialized": "RailwayBuilder not initialized!",
   "commands.tongdarailway.teleport.no_stations_found": "No stations found in nearby regions!",
   "commands.tongdarailway.teleport.success": "Teleported to station at %s",
-  "commands.tongdarailway.teleport.failed": "Failed to teleport: %s"
+  "commands.tongdarailway.teleport.failed": "Failed to teleport: %s",
+  "commands.tongdarailway.spawn_underground_station.no_stations": "No underground stations loaded!",
+  "commands.tongdarailway.spawn_underground_station.failed_random": "Failed to get random underground station!",
+  "commands.tongdarailway.spawn_underground_station.success": "Spawned underground station (ID: %s) at %s\nExits: %s",
+  "commands.tongdarailway.spawn_underground_station.error": "Error spawning station: %s",
+  "config.tongdarailway.enableTrackSpawner": "Enable Track Spawner",
+  "config.tongdarailway.enableTrackSpawner.tooltip": "Whether the track spawner can work normally",
+  "config.tongdarailway.generateTrackSpawner": "Generate Track Spawner",
+  "config.tongdarailway.generateTrackSpawner.tooltip": "Whether to place track spawner blocks during world generation",
+  "config.tongdarailway.placeTracksUsingTrackSpawner": "Use Spawner to Place Tracks",
+  "config.tongdarailway.placeTracksUsingTrackSpawner.tooltip": "true: Use track spawner to place tracks dynamically\nfalse: Place rails directly during world generation",
+  "config.tongdarailway.chunkGroupSize": "Chunk Group Size",
+  "config.tongdarailway.chunkGroupSize.tooltip": "Size of railway planning region in chunks, affects railway density (16-512)",
+  "config.tongdarailway.heightMaxIncrement": "Max Height Increment",
+  "config.tongdarailway.heightMaxIncrement.tooltip": "Maximum elevation change for railways, affects slope steepness (10-500)"
 }

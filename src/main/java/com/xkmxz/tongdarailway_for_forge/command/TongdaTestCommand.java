@@ -95,7 +95,7 @@ public class TongdaTestCommand {
         CommandSourceStack source = context.getSource();
 
         if (StationManager.undergroundStation.isEmpty()) {
-            source.sendFailure(Component.literal("No underground stations loaded!"));
+            source.sendFailure(Component.translatable("commands.tongdarailway.spawn_underground_station.no_stations"));
             return 0;
         }
 
@@ -106,7 +106,7 @@ public class TongdaTestCommand {
 
             StationStructure station = StationManager.getRandomUnderGroundStation(seed);
             if (station == null) {
-                source.sendFailure(Component.literal("Failed to get random underground station!"));
+                source.sendFailure(Component.translatable("commands.tongdarailway.spawn_underground_station.failed_random"));
                 return 0;
             }
 
@@ -121,15 +121,17 @@ public class TongdaTestCommand {
                 }
             }
 
-            source.sendSuccess(() -> Component.literal(
-                    "Spawned underground station (ID: " + station.getId() + ") at " + playerPos.toShortString() +
-                            "\nExits: " + station.getExitCount()
+            source.sendSuccess(() -> Component.translatable(
+                    "commands.tongdarailway.spawn_underground_station.success",
+                    station.getId(),
+                    playerPos.toShortString(),
+                    station.getExitCount()
             ), true);
 
             Tongdarailway_for_forge.LOGGER.info("Test command spawned underground station at {}", playerPos);
             return 1;
         } catch (Exception e) {
-            source.sendFailure(Component.literal("Error spawning station: " + e.getMessage()));
+            source.sendFailure(Component.translatable("commands.tongdarailway.spawn_underground_station.error", e.getMessage()));
             Tongdarailway_for_forge.LOGGER.error("Error spawning station", e);
             return 0;
         }
