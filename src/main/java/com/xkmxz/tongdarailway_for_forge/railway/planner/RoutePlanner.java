@@ -1,10 +1,10 @@
-package com.xkmxz.tongdarailway_for_forge.railway.planner;
+package com.hxzhitang.tongdarailway_for_forge.railway.planner;
 
-import com.xkmxz.tongdarailway_for_forge.Tongdarailway_for_forge;
-import com.xkmxz.tongdarailway_for_forge.railway.RailwayBuilder;
-import com.xkmxz.tongdarailway_for_forge.railway.RegionPos;
-import com.xkmxz.tongdarailway_for_forge.structure.TrackPutInfo;
-import com.xkmxz.tongdarailway_for_forge.util.*;
+import com.hxzhitang.tongdarailway_for_forge.Tongdarailway_for_forge;
+import com.hxzhitang.tongdarailway_for_forge.railway.RailwayBuilder;
+import com.hxzhitang.tongdarailway_for_forge.railway.RegionPos;
+import com.hxzhitang.tongdarailway_for_forge.structure.TrackPutInfo;
+import com.hxzhitang.tongdarailway_for_forge.util.*;
 
 import net.createmod.catnip.math.AngleHelper;
 import net.createmod.catnip.math.VecHelper;
@@ -21,8 +21,9 @@ import net.minecraft.world.phys.Vec3;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.xkmxz.tongdarailway_for_forge.Config;
-import static com.xkmxz.tongdarailway_for_forge.railway.RailwayMap.samplingNum;
+import static com.hxzhitang.tongdarailway_for_forge.Tongdarailway_for_forge.CHUNK_GROUP_SIZE;
+import static com.hxzhitang.tongdarailway_for_forge.Tongdarailway_for_forge.HEIGHT_MAX_INCREMENT;
+import static com.hxzhitang.tongdarailway_for_forge.railway.RailwayMap.samplingNum;
 
 // Pathfinding and railway route planning
 public class RoutePlanner {
@@ -32,9 +33,9 @@ public class RoutePlanner {
         this.regionPos = regionPos;
     }
 
-    // Get cost map from nine adjacent regions
+    // ==================== 旧版方法 ====================
     public int[][] getCostMap(WorldGenRegion level) {
-        int[][] heightMap = new int[Config.chunkGroupSize * samplingNum * 3][Config.chunkGroupSize * samplingNum * 3];
+        int[][] heightMap = new int[CHUNK_GROUP_SIZE * samplingNum * 3][CHUNK_GROUP_SIZE * samplingNum * 3];
         for (int[] ints : heightMap) {
             Arrays.fill(ints, Integer.MAX_VALUE);
         }
@@ -53,32 +54,29 @@ public class RoutePlanner {
                 }
                 for (int x = 0; x < map.length; x++) {
                     for (int z = 0; z < map[0].length; z++) {
-                        int picX = (i + 1) * Config.chunkGroupSize * samplingNum + x;
-                        int picZ = (j + 1) * Config.chunkGroupSize * samplingNum + z;
+                        int picX = (i + 1) * CHUNK_GROUP_SIZE * samplingNum + x;
+                        int picZ = (j + 1) * CHUNK_GROUP_SIZE * samplingNum + z;
                         heightMap[picX][picZ] = map[x][z];
                     }
                 }
             }
         }
-
         return heightMap;
     }
 
     private int[][] getHeightMap(ServerLevel serverLevel, RegionPos regionPos) {
-        // Height adaptive sampling height map
         ChunkGenerator gen = serverLevel.getChunkSource().getGenerator();
         RandomState cfg = serverLevel.getChunkSource().randomState();
 
-        // Create adaptive height sampler
         AdaptiveHeightSampler sampler = new AdaptiveHeightSampler(10, 3, 4, (x, z) -> {
-            int wx = (int) (x * (16.0 / samplingNum) + regionPos.x() * Config.chunkGroupSize * 16);
-            int wz = (int) (z * (16.0 / samplingNum) + regionPos.z() * Config.chunkGroupSize * 16);
+            int wx = (int) (x * (16.0 / samplingNum) + regionPos.x() * CHUNK_GROUP_SIZE * 16);
+            int wz = (int) (z * (16.0 / samplingNum) + regionPos.z() * CHUNK_GROUP_SIZE * 16);
             return gen.getBaseHeight(wx, wz, Heightmap.Types.WORLD_SURFACE_WG, serverLevel, cfg);
         });
 
         try {
             long startTime = System.currentTimeMillis();
-            sampler.buildQuadTree(Config.chunkGroupSize * samplingNum);
+            sampler.buildQuadTree(CHUNK_GROUP_SIZE * samplingNum);
             long endTime = System.currentTimeMillis();
             Tongdarailway_for_forge.LOGGER.info(" Build HeightMap time: {}ms", endTime - startTime);
         } catch (InterruptedException e) {
@@ -87,53 +85,37 @@ public class RoutePlanner {
             sampler.shutdown();
         }
 
-        int[][] heightMap = sampler.generateImage(Config.chunkGroupSize * samplingNum, Config.chunkGroupSize * samplingNum);
-
+        int[][] heightMap = sampler.generateImage(CHUNK_GROUP_SIZE * samplingNum, CHUNK_GROUP_SIZE * samplingNum);
         return heightMap;
     }
 
-    /**
-     * Plan route
-     * @param way route map
-     */
     public ResultWay getWay(List<int[]> way, int[][] costMap, StationPlanner.ConnectionGenInfo connectionGenInfo, ServerLevel level) {
         List<int[]> handledHeightWay = handleHeight(way, level, costMap, connectionGenInfo);
-        // Convert to region coordinate system
         handledHeightWay = handledHeightWay.stream().map(AStarPathfinder::pic2RegionPos).toList();
-        return connectTrackNew(handledHeightWay, connectionGenInfo);
+        return connectTrackNew3(handledHeightWay, connectionGenInfo);
     }
 
-    /**
-     * Handle height smoothing
-     * @param path direct path (picture coordinates)
-     * @param level server level
-     */
     public List<int[]> handleHeight(List<int[]> path, ServerLevel level, int[][] heightMap, StationPlanner.ConnectionGenInfo con) {
         List<double[]> adPath = new LinkedList<>();
         int seaLevel = level.getSeaLevel();
 
-        // Initial pass
         for (int[] p : path) {
             int h = heightMap[p[0]][p[1]];
-            // Limit height range
             h = Math.max(h, seaLevel + 5);
-            h = Math.min(h, seaLevel + Config.heightMaxIncrement);
+            h = Math.min(h, seaLevel + HEIGHT_MAX_INCREMENT);
             adPath.add(new double[]{p[0], p[1], h});
         }
 
         adPath.get(0)[2] = con.connectStart()[2];
         adPath.get(adPath.size() - 1)[2] = con.connectEnd()[2];
 
-        // Height adjustment
         adPath = adjustmentHeight(adPath);
 
-        // Smoothing (excluding endpoints)
         int max = adPath.stream().mapToInt(p -> (int) p[2]).max().orElse(0);
         int min = adPath.stream().mapToInt(p -> (int) p[2]).min().orElse(0);
         int framed2 = ((max - min) / 2) + 1;
 
         if (adPath.size() > framed2 * 2 && framed2 * 2 >= 3) {
-            // Smooth middle
             List<double[]> adPath1 = new ArrayList<>();
             adPath1.add(adPath.get(0));
             for (int i = 1; i < adPath.size() - 1; i++) {
@@ -157,7 +139,6 @@ public class RoutePlanner {
             adPath1.add(adPath.get(adPath.size() - 1));
             adPath = adPath1;
 
-            // Smooth endpoints
             double fh = con.connectStart()[2];
             double lh = con.connectEnd()[2];
             if (adPath.size() > framed2 * 2 + 20) {
@@ -180,90 +161,6 @@ public class RoutePlanner {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Connect tracks using bezier curves
-     * @param path path endpoints
-     * @return connected track result
-     */
-    private ResultWay connectTrackNew(List<int[]> path, StationPlanner.ConnectionGenInfo con) {
-        // Convert to world coordinate system
-        List<Vec3> path0 = new ArrayList<>();
-
-        for (int i = 2; i < path.size() - 2; i++) {
-            int[] point = path.get(i);
-            path0.add(MyMth.inRegionPos2WorldPos(
-                    regionPos,
-                    new Vec3(point[0], point[2], point[1])
-                            .multiply(16.0 / samplingNum, 1, 16.0 / samplingNum)
-            ));
-        }
-
-        // Connect to stations
-        Vec3 first = path0.get(0);
-        Vec3 last = path0.get(path0.size() - 1);
-        Vec3 firstDir = first.subtract(path0.get(1)).normalize();
-        Vec3 lastDir = last.subtract(path0.get(path0.size() - 2)).normalize();
-
-        ResultWay result = new ResultWay(new CurveRoute.CompositeCurve(), new ArrayList<>());
-
-        // Station start connection
-        Vec3 pA = con.start().add(con.startDir().scale(30)).add(con.exitDir().scale(30));
-        if (con.startDir().dot(con.exitDir()) > 0.999) {
-            result.addLine(con.start(), pA);
-        } else {
-            result.addBezier(con.start(), con.startDir(), pA.subtract(con.start()), con.exitDir().reverse());
-        }
-        result.addBezier(pA, con.exitDir(), first.subtract(pA), firstDir);
-
-        // From second point, find valid connections
-        a:
-        for (int i = 0; i < path0.size() - 1; i++) {
-            int j = Math.min(8, path0.size() - 1 - i);
-            Vec3 startPos = path0.get(i);
-            Vec3 startDir;
-            if (i == 0)
-                startDir = path0.get(i + 1).subtract(path0.get(i)).multiply(1, 0, 1).normalize();
-            else
-                startDir = path0.get(i).subtract(path0.get(i - 1)).multiply(1, 0, 1).normalize();
-
-            // Check forward points
-            while (j >= 2) {
-                Vec3 endPos0 = path0.get(i + j);
-                Vec3 endDir0 = path0.get(i + j).subtract(path0.get(i + j - 1)).multiply(1, 0, 1).normalize();
-
-                if (isValidTrackPlacement(startPos, startDir, endPos0, endDir0.reverse())) {
-                    if (startPos.y == endPos0.y && startDir.dot(endDir0) > 0.9999 && startDir.dot(endPos0.subtract(startPos).normalize()) > 0.9999) {
-                        result.addLine(startPos, endPos0);
-                    } else {
-                        result.addBezier(startPos, startDir, endPos0.subtract(startPos), endDir0.reverse());
-                    }
-                    i += j - 1;
-                    continue a;
-                }
-                j--;
-            }
-            // No valid connection found, force connection
-            Vec3 endPos = path0.get(i + 1);
-            Vec3 endDir = path0.get(i + 1).subtract(path0.get(i)).multiply(1, 0, 1).normalize();
-            if (startPos.y == endPos.y && startDir.dot(endDir) > 0.9999 && startDir.dot(endPos.subtract(startPos).normalize()) > 0.9999) {
-                result.addLine(startPos, endPos);
-            } else {
-                result.addBezier(startPos, startDir, endPos.subtract(startPos), endDir.reverse());
-            }
-        }
-
-        // Station end connection
-        Vec3 pB = con.end().add(con.endDir().scale(30)).add(con.exitDir().reverse().scale(30));
-        result.addBezier(last, lastDir, pB.subtract(last), con.exitDir().reverse());
-        if (con.endDir().dot(con.exitDir().reverse()) > 0.999) {
-            result.addLine(pB, con.end());
-        } else {
-            result.addBezier(pB, con.exitDir(), con.end().subtract(pB), con.endDir());
-        }
-
-        return result;
-    }
-
     private static List<double[]> adjustmentHeight(List<double[]> path) {
         List<double[]> adjustedPath = new ArrayList<>();
         if (path.size() < 2)
@@ -272,7 +169,6 @@ public class RoutePlanner {
         double hEnd = path.get(path.size() - 1)[2];
         double pNum = path.size() - 1;
 
-        // Calculate relative height
         List<double[]> heightList0 = new ArrayList<>();
         Map<Integer, List<double[]>> heightGroups = new HashMap<>();
         double distance = 0;
@@ -291,7 +187,6 @@ public class RoutePlanner {
         }
         double sec = Math.sqrt(Math.pow(heightList0.size(), 2) + Math.pow(Math.abs(hStart - hEnd), 2)) / (heightList0.size());
 
-        // Main loop
         for (int j = 0; j < heightList0.size(); j++) {
             double[] thisPoint = heightList0.get(j);
             adjustedPath.add(new double[]{thisPoint[0], thisPoint[1], thisPoint[2]});
@@ -320,7 +215,6 @@ public class RoutePlanner {
                 }
             }
         }
-        // Add back base height
         for (int i = 0; i < adjustedPath.size(); i++) {
             double[] p = adjustedPath.get(i);
             p[2] += hStart * ((pNum - i) / pNum) + hEnd * (i / pNum);
@@ -329,105 +223,222 @@ public class RoutePlanner {
         return adjustedPath;
     }
 
-    /**
-     * Validate track placement
-     */
-    public static boolean isValidTrackPlacement(
-            Vec3 startPos,
-            Vec3 startAxis,
-            Vec3 endPos,
-            Vec3 endAxis
-    ) {
-        // 1. Check distance (default max 100)
-        double maxLength = 100.0;
-        if (startPos.distanceToSqr(endPos) > maxLength * maxLength) {
-            return false;
-        }
+    // ==================== 从 1.21.1 迁移的核心算法 ====================
+    private record ConnectInfo(Vec3 startPos, Vec3 startAxis, Vec3 endPos, Vec3 endAxis, int startExtent, int endExtent) {}
 
-        // 2. Check if same point
-        if (startPos.equals(endPos)) {
-            return false;
-        }
+    private static ConnectInfo getConnect(BlockPos pos1, BlockPos pos2, Vec3 axis1, Vec3 axis2, boolean maximiseTurn) {
+        Vec3 normedAxis1 = axis1.normalize();
+        Vec3 normedAxis2 = axis2.normalize();
 
-        // 3. Normalize axes
-        Vec3 normedAxis1 = startAxis.normalize();
-        Vec3 normedAxis2 = endAxis.normalize();
+        Vec3 end1 = MyMth.getCurveStart(pos1, axis1);
+        Vec3 end2 = MyMth.getCurveStart(pos2, axis2);
 
-        // 4. Check if parallel
-        double[] intersect = VecHelper.intersect(startPos, endPos, normedAxis1, normedAxis2, Direction.Axis.Y);
+        double[] intersect = VecHelper.intersect(end1, end2, normedAxis1, normedAxis2, Direction.Axis.Y);
         boolean parallel = intersect == null;
+        boolean skipCurve = false;
 
-        // 5. Check perpendicular case
-        if (parallel && normedAxis1.dot(normedAxis2) > 0) {
-            return false;
-        }
+        Vec3 cross2 = normedAxis2.cross(new Vec3(0, 1, 0));
 
-        // 6. Check turn angle
-        if (!parallel) {
-            double a1 = Mth.atan2(normedAxis2.z, normedAxis2.x);
-            double a2 = Mth.atan2(normedAxis1.z, normedAxis1.x);
-            double angle = a1 - a2;
-            float absAngle = Math.abs(AngleHelper.deg(angle));
+        double a1 = Mth.atan2(normedAxis2.z, normedAxis2.x);
+        double a2 = Mth.atan2(normedAxis1.z, normedAxis1.x);
+        double angle = a1 - a2;
+        double ascend = end2.subtract(end1).y;
+        double absAscend = Math.abs(ascend);
 
-            if (absAngle < 60 || absAngle > 300) {
-                return false;
-            }
+        int end1Extent = 0;
+        int end2Extent = 0;
 
-            intersect = VecHelper.intersect(startPos, endPos, normedAxis1, normedAxis2, Direction.Axis.Y);
-            if (intersect == null || intersect[0] < 0 || intersect[1] < 0) {
-                return false;
-            }
-
-            double dist1 = Math.abs(intersect[0]);
-            double dist2 = Math.abs(intersect[1]);
-            double turnSize = Math.min(dist1, dist2) - 0.1;
-
-            boolean ninety = (absAngle + 0.25f) % 90 < 1;
-            double minTurnSize = ninety ? 7 : 3.25;
-
-            if (turnSize < minTurnSize) {
-                return false;
-            }
-        }
-
-        // 7. Check S-curve
         if (parallel) {
-            Vec3 cross2 = normedAxis2.cross(new Vec3(0, 1, 0));
-            double[] sTest = VecHelper.intersect(startPos, endPos, normedAxis1, cross2, Direction.Axis.Y);
-
-            if (sTest != null && sTest[0] < 0) {
-                return false;
-            }
-
-            if (sTest != null && !Mth.equal(Math.abs(sTest[1]), 0)) {
+            double[] sTest = VecHelper.intersect(end1, end2, normedAxis1, cross2, Direction.Axis.Y);
+            if (sTest != null) {
                 double t = Math.abs(sTest[0]);
                 double u = Math.abs(sTest[1]);
-                double targetT = u <= 1 ? 3 : u * 2;
 
-                if (t < targetT) {
-                    return false;
+                skipCurve = Mth.equal(u, 0);
+
+                if (!skipCurve && sTest[0] < 0)
+                    return new ConnectInfo(
+                            new Vec3(pos1.getX(), pos1.getY(), pos1.getZ()),
+                            axis1,
+                            new Vec3(pos2.getX(), pos2.getY(), pos2.getZ()),
+                            axis2,
+                            end1Extent,
+                            end2Extent
+                    );
+
+                if (skipCurve) {
+                    double dist = VecHelper.getCenterOf(pos1).distanceTo(VecHelper.getCenterOf(pos2));
+                    end1Extent = (int) Math.round((dist + 1) / axis1.length());
+                } else {
+                    if (!Mth.equal(ascend, 0) || normedAxis1.y != 0)
+                        return null;
+
+                    double targetT = u <= 1 ? 3 : u * 2;
+                    if (t < targetT) return null;
+                    if (t > targetT) {
+                        int correction = (int) ((t - targetT) / axis1.length());
+                        end1Extent = maximiseTurn ? 0 : correction / 2 + (correction % 2);
+                        end2Extent = maximiseTurn ? 0 : correction / 2;
+                    }
                 }
             }
         }
 
-        return true;
+        if (skipCurve && !Mth.equal(ascend, 0)) {
+            int hDistance = end1Extent;
+            if (axis1.y == 0 || !Mth.equal(absAscend + 1, hDistance)) {
+                if (axis1.y != 0 && axis1.y == -axis2.y)
+                    return null;
+
+                end1Extent = 0;
+                double minHDistance = Math.max(absAscend < 4 ? absAscend * 4 : absAscend * 3, 6) / axis1.length();
+                if (hDistance < minHDistance) return null;
+                if (hDistance > minHDistance) {
+                    int correction = (int) (hDistance - minHDistance);
+                    end1Extent = maximiseTurn ? 0 : correction / 2 + (correction % 2);
+                    end2Extent = maximiseTurn ? 0 : correction / 2;
+                }
+                skipCurve = false;
+            }
+        }
+
+        if (!parallel) {
+            float absAngle = Math.abs(AngleHelper.deg(angle));
+            if (absAngle < 60 || absAngle > 300) return null;
+
+            intersect = VecHelper.intersect(end1, end2, normedAxis1, normedAxis2, Direction.Axis.Y);
+            double dist1 = Math.abs(intersect[0]);
+            double dist2 = Math.abs(intersect[1]);
+            float ex1 = 0, ex2 = 0;
+
+            if (dist1 > dist2) ex1 = (float) ((dist1 - dist2) / axis1.length());
+            if (dist2 > dist1) ex2 = (float) ((dist2 - dist1) / axis2.length());
+
+            double turnSize = Math.min(dist1, dist2) - .1d;
+            boolean ninety = (absAngle + .25f) % 90 < 1;
+
+            if (intersect[0] < 0 || intersect[1] < 0) return null;
+
+            double minTurnSize = ninety ? 7 : 3.25;
+            double turnSizeToFitAscend = minTurnSize + (ninety ? Math.max(0, absAscend - 3) * 2 : Math.max(0, absAscend - 1.5) * 1.5);
+
+            if (turnSize < minTurnSize) return null;
+            if (turnSize < turnSizeToFitAscend) return null;
+
+            if (!maximiseTurn) {
+                ex1 += (float) ((turnSize - turnSizeToFitAscend) / axis1.length());
+                ex2 += (float) ((turnSize - turnSizeToFitAscend) / axis2.length());
+            }
+            end1Extent = Mth.floor(ex1);
+            end2Extent = Mth.floor(ex2);
+        }
+
+        Vec3 offset1 = axis1.scale(end1Extent);
+        Vec3 offset2 = axis2.scale(end2Extent);
+        BlockPos startPos = pos1.offset((int) offset1.x, (int) offset1.y, (int) offset1.z);
+        BlockPos endPos = pos2.offset((int) offset2.x, (int) offset2.y, (int) offset2.z);
+
+        return new ConnectInfo(
+                new Vec3(startPos.getX(), startPos.getY(), startPos.getZ()),
+                axis1,
+                new Vec3(endPos.getX(), endPos.getY(), endPos.getZ()),
+                axis2,
+                end1Extent,
+                end2Extent
+        );
     }
 
-    public record ResultWay(
-            CurveRoute.CompositeCurve way,
-            List<TrackPutInfo> trackPutInfos
-    ) {
+    private ResultWay connectTrackNew3(List<int[]> path, StationPlanner.ConnectionGenInfo con) {
+        List<Vec3> path0 = new ArrayList<>();
+        for (int i = 0; i < path.size() - 2; i++) {
+            int[] point = path.get(i);
+            path0.add(MyMth.inRegionPos2WorldPos(regionPos,
+                    new Vec3(point[0], point[2], point[1]).multiply(16.0 / samplingNum, 1, 16.0 / samplingNum)));
+        }
+
+        List<Vec3> path1 = new ArrayList<>();
+        for (int i = 0; i < path0.size() - 12; i += 6) path1.add(path0.get(i));
+        path1.add(path0.get(path0.size() - 1));
+
+        ResultWay result = new ResultWay(new CurveRoute.CompositeCurve(), new ArrayList<>());
+
+        Vec3 pA = con.start().add(con.startDir().scale(30)).add(con.exitDir().scale(25));
+        result.addBezier(con.start(), con.startDir(), pA.subtract(con.start()), con.exitDir().reverse());
+
+        Vec3 pB = con.end().add(con.endDir().scale(30)).add(con.exitDir().reverse().scale(25));
+        path1.add(0, pA);
+        path1.add(pB);
+
+        Vec3 startDir = con.exitDir();
+        Vec3 endDir;
+        for (int i = 0; i < path1.size() - 1; i++) {
+            Vec3 start = path1.get(i);
+            Vec3 end = path1.get(i + 1);
+            endDir = MyMth.get8Dir(end.subtract(start)).reverse();
+            if (i == path1.size() - 2) endDir = con.exitDir().reverse();
+
+            if (RoutePlanner.getConnect(BlockPos.containing(start.multiply(1,0,1)), BlockPos.containing(end.multiply(1,0,1)), startDir, endDir, false) != null) {
+                Vec3 dir = end.subtract(start).multiply(1, 0, 1).normalize();
+                if (Mth.equal(startDir.dot(dir), 1) && Mth.equal(startDir.dot(endDir.reverse()), 1))
+                    result.addBezier(start, startDir, end.subtract(start), endDir);
+                else
+                    result.connectWay(start, end, startDir, endDir, start.y == end.y);
+            } else {
+                int len = (int) (start.distanceTo(end) / 2) - 2;
+                Vec3 aPos = start.add(startDir.scale(len)).add(end.add(endDir.scale(len))).scale(0.5);
+                aPos = new Vec3((int) aPos.x(), (int) aPos.y(), (int) aPos.z());
+                Vec3 aDir;
+                Vec3 d = aPos.subtract(start).multiply(1, 0, 1).normalize();
+                double dot = startDir.dot(d);
+                double cross = startDir.x * d.z - startDir.z * d.x;
+                boolean maximiseTurn = start.y == end.y;
+
+                if (Mth.equal(dot, 1)) {
+                    aDir = startDir;
+                    result.addBezier(start, startDir, aPos.subtract(start), aDir.reverse());
+                    result.addBezier(aPos, aDir, end.subtract(aPos), endDir);
+                } else {
+                    aDir = dot > 0.78 ? MyMth.rotateAroundY(startDir, cross, 45) : MyMth.rotateAroundY(startDir, cross, 90);
+                    result.connectWay(start, aPos, startDir, aDir.reverse(), maximiseTurn);
+                    result.connectWay(aPos, end, aDir, endDir, maximiseTurn);
+                }
+            }
+            startDir = endDir.reverse();
+        }
+        result.addBezier(pB, con.exitDir(), con.end().subtract(pB), con.endDir());
+        return result;
+    }
+
+    // ==================== ResultWay 记录 ====================
+    public record ResultWay(CurveRoute.CompositeCurve way, List<TrackPutInfo> trackPutInfos) {
+
+        public void connectWay(Vec3 start, Vec3 end, Vec3 startDir, Vec3 endDir, boolean maximiseTurn) {
+            int h = (int) ((start.y + end.y) / 2);
+            Vec3 s = new Vec3(start.x, h, start.z);
+            Vec3 e = new Vec3(end.x, h, end.z);
+            var connect = RoutePlanner.getConnect(BlockPos.containing(s), BlockPos.containing(e), startDir, endDir, maximiseTurn);
+            if (connect != null) {
+                if (connect.startExtent < 4 || connect.endExtent < 4) {
+                    h = connect.startExtent < connect.endExtent ? (int) start.y : (int) end.y;
+                }
+                Vec3 conStart = new Vec3(connect.startPos.x, h, connect.startPos.z);
+                Vec3 conEnd = new Vec3(connect.endPos.x, h, connect.endPos.z);
+                if (connect.startExtent != 0) addBezier(start, startDir, conStart.subtract(start), startDir.reverse());
+                addBezier(conStart, startDir, conEnd.subtract(conStart), endDir);
+                if (connect.endExtent != 0) addBezier(conEnd, endDir.reverse(), end.subtract(conEnd), endDir);
+            } else {
+                addBezier(start, startDir, end.subtract(start), endDir);
+                Tongdarailway_for_forge.LOGGER.warn("The road position cannot be determined, and the line has been forced to connect. {} {}", start, end);
+            }
+        }
+
         public void addLine(Vec3 start, Vec3 end) {
             way.addSegment(new CurveRoute.LineSegment(start, end));
             int n = Math.max((int) Math.abs(start.x - end.x), (int) Math.abs(start.z - end.z));
             for (int k = 0; k <= n; k++) {
                 int x = (int) (start.x + MyMth.getSign(end.x - start.x) * k);
                 int z = (int) (start.z + MyMth.getSign(end.z - start.z) * k);
-                trackPutInfos.add(TrackPutInfo.getByDir(
-                        new BlockPos(x, (int) start.y, z),
-                        end.subtract(start),
-                        null
-                ));
+                trackPutInfos.add(TrackPutInfo.getByDir(new BlockPos(x, (int) start.y, z), end.subtract(start), null));
             }
         }
 
@@ -437,16 +448,8 @@ public class RoutePlanner {
             } else {
                 way.addSegment(CurveRoute.CubicBezier.getCubicBezier(start, startDir, endOffset, endDir));
             }
-            trackPutInfos.add(TrackPutInfo.getByDir(
-                    new BlockPos((int) start.x, (int) start.y, (int) start.z),
-                    startDir,
-                    new TrackPutInfo.BezierInfo(
-                            start,
-                            startDir,
-                            endOffset,
-                            endDir
-                    )
-            ));
+            trackPutInfos.add(TrackPutInfo.getByDir(new BlockPos((int) start.x, (int) start.y, (int) start.z),
+                    startDir, new TrackPutInfo.BezierInfo(start, startDir, endOffset, endDir)));
         }
     }
 }
