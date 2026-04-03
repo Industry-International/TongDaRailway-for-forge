@@ -50,7 +50,6 @@ public class Tongdarailway_for_forge {
         ModBlocks.register(modEventBus);
         ModBlockEntities.register(modEventBus);
 
-        modEventBus.addListener(ModDataGen::gatherData);
 
         // Register ourselves for server and other game events
         MinecraftForge.EVENT_BUS.register(this);
