@@ -7,6 +7,8 @@ import net.minecraft.server.level.WorldGenRegion;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.*;
 
 public class RailwayBuilder {
@@ -57,14 +59,12 @@ public class RailwayBuilder {
             return;
         }
 
-        // If railway not yet generated...
+        Future<?> future;
         try {
-            // If no thread generating this route, start one
-            if (!regionFutures.containsKey(regionPos)) {
-                var f = regionRailwayLoadPoolExecutor.submit(() -> {
+            future = regionFutures.computeIfAbsent(regionPos, k -> {
+                return regionRailwayLoadPoolExecutor.submit(() -> {
                     // Generate railway map...
                     RailwayMap railwayMap = new RailwayMap(regionPos);
-
                     railwayMap.startPlanningRoutes(level);
 
                     // Save the railway planning result
@@ -73,14 +73,28 @@ public class RailwayBuilder {
                     // Save data to local
                     data.putRailwayMap(regionPos, railwayMap);
                 });
-                regionFutures.put(regionPos, f);
-            }
-            // Wait for thread to complete
-            regionFutures.get(regionPos).get();
+            });
+            future.get();
         } catch (InterruptedException | ExecutionException e) {
             Tongdarailway_for_forge.LOGGER.error(e.getMessage());
         } finally {
             regionFutures.remove(regionPos);
+        }
+
+        // ========== 内存泄漏修复：限制缓存大小 ==========
+        if (regionRailways.size() > 200) {   // 阈值可调，200 区域约对应 200 * 128*128 方块
+            List<RegionPos> toRemove = new ArrayList<>();
+            int removeCount = regionRailways.size() / 2;   // 移除一半
+            for (RegionPos pos : regionRailways.keySet()) {
+                if (toRemove.size() >= removeCount) break;
+                if (pos.equals(regionPos)) continue;   // 保留当前区域
+                toRemove.add(pos);
+            }
+            for (RegionPos pos : toRemove) {
+                regionRailways.remove(pos);
+                regionHeightMap.remove(pos);
+            }
+            Tongdarailway_for_forge.LOGGER.info("Cleaned {} old railway data from memory", toRemove.size());
         }
     }
 }

@@ -30,14 +30,15 @@ public class AdaptiveHeightSampler {
             this.isLeaf = true;
         }
     }
+    private static final ExecutorService SHARED_EXECUTOR = Executors.newCachedThreadPool();
 
     public AdaptiveHeightSampler(double threshold, int maxLevel, int samplesPerNode, HeightFunction heightFunction) {
         this.threshold = threshold;
         this.maxLevel = maxLevel;
         this.samplesPerNode = samplesPerNode;
         this.heightFunction = heightFunction;
-        int coreCount = Runtime.getRuntime().availableProcessors();
-        this.executor = Executors.newFixedThreadPool(coreCount);
+        // 不再创建新线程池，使用共享的
+        this.executor = SHARED_EXECUTOR;
     }
 
     public void buildQuadTree(double regionSize) throws InterruptedException {
@@ -194,17 +195,8 @@ public class AdaptiveHeightSampler {
     }
 
     public void shutdown() {
-        if (executor != null && !executor.isShutdown()) {
-            executor.shutdown();
-            try {
-                if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
-                    executor.shutdownNow();
-                }
-            } catch (InterruptedException e) {
-                executor.shutdownNow();
-                Thread.currentThread().interrupt();
-            }
-        }
+        // 共享线程池，不关闭
+        // 如果需要确保所有任务完成，可以调用 awaitTermination，但不 shutdown
     }
 
     public void printStatistics() {
@@ -248,6 +240,7 @@ public class AdaptiveHeightSampler {
         int maxDepth = 0;
         int totalSamples = 0;
     }
+
 
     @FunctionalInterface
     public interface HeightFunction {
