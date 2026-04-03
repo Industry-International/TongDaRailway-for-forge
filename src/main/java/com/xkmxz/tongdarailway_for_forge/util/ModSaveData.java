@@ -9,10 +9,12 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.storage.DimensionDataStorage;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import com.xkmxz.tongdarailway_for_forge.Tongdarailway_for_forge;
 
 public class ModSaveData extends SavedData {
     public static final String NAME = "tongdarailway_mod_railway_data";
@@ -21,6 +23,21 @@ public class ModSaveData extends SavedData {
     public void putRailwayMap(RegionPos regionPos, RailwayMap railwayMap) {
         regionRailways.put(regionPos, railwayMap);
         setDirty();
+
+        // 内存泄漏修复：限制缓存大小，最多保留 100 个区域
+        if (regionRailways.size() > 100) {
+            // 移除最早的一半（这里简单移除 keySet 的前一半，实际可改进为 LRU）
+            List<RegionPos> toRemove = new ArrayList<>();
+            int removeCount = regionRailways.size() / 2;
+            for (RegionPos pos : regionRailways.keySet()) {
+                if (toRemove.size() >= removeCount) break;
+                toRemove.add(pos);
+            }
+            for (RegionPos pos : toRemove) {
+                regionRailways.remove(pos);
+            }
+            Tongdarailway_for_forge.LOGGER.info("ModSaveData: cleaned {} old region data", toRemove.size());
+        }
     }
 
     public RailwayMap getRailwayMap(RegionPos regionPos) {
