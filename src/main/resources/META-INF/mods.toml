@@ -32,5 +32,12 @@ description='''${mod_description}'''
     ordering="AFTER"
     side="BOTH"
 
+[[dependencies.${mod_id}]]
+modId="configured"
+mandatory=false  # 这里改成 false 就是可选依赖
+versionRange="[2.0.0,)"
+ordering="AFTER"
+side="BOTH"
+
 [[mixins]]
     config="${mod_id}.mixins.json"

@@ -183,7 +183,9 @@ dependencies {
     runtimeOnly(fg.deobf("dev.engine-room.flywheel:flywheel-forge-${minecraft_version}:${flywheel_version}"))
     implementation(fg.deobf("com.tterrag.registrate:Registrate:${registrate_version}"))
     runtimeOnly(fg.deobf("curse.maven:imblocker-483760:6065354"))
-    implementation fg.deobf("curse.maven:configured-457570:5180900")
+    implementation(fg.deobf("curse.maven:configured-457570:5180900"))
+    runtimeOnly(fg.deobf("curse.maven:xaeros-minimap-263420:7598586"))
+    runtimeOnly(fg.deobf("curse.maven:xaeros-world-map-317780:7598469"))
     // MixinExtras (修正：去除了重复的 implementation 行)
     compileOnly "io.github.llamalad7:mixinextras-common:0.4.1"
     annotationProcessor "io.github.llamalad7:mixinextras-common:0.4.1"
