@@ -5,11 +5,14 @@
 
 name: Qodana
 on:
+  # 手动触发 workflow（你要的手动触发）
   workflow_dispatch:
-  pull_request:
+  # 发布/打标签触发（你要的每次发版触发）
+  release:
+    types: [published]
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'
 
 jobs:
   qodana:
