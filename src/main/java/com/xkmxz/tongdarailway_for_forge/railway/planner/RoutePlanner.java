@@ -30,7 +30,10 @@ import static com.xkmxz.tongdarailway_for_forge.railway.RailwayMap.samplingNum;
 
 
 
-// Pathfinding and railway route planning
+/**
+ * 路径查找和铁路路线规划类
+ * 负责规划铁路线路，处理高度调整和水域检测
+ */
 public class RoutePlanner {
     private final RegionPos regionPos;
 
@@ -38,8 +41,12 @@ public class RoutePlanner {
         this.regionPos = regionPos;
     }
 
-    // Get cost map from nine adjacent regions
-    // ==================== 旧版方法 ====================
+    /**
+     * 从九个相邻区域获取代价地图
+     * ==================== 旧版方法 ====================
+     * @param level 世界生成区域
+     * @return 高度地图
+     */
     public int[][] getCostMap(WorldGenRegion level) {
         int[][] heightMap = new int[Config.chunkGroupSize * samplingNum * 3][Config.chunkGroupSize * samplingNum * 3];
         for (int[] ints : heightMap) {
@@ -98,6 +105,13 @@ public class RoutePlanner {
         return new CellCost(surfaceHeight, cost, blocked);
     }
 
+    /**
+     * 构建障碍物代价地图
+     * 检测水域、固体方块等障碍物，为路径规划提供代价信息
+     * @param level 服务器世界
+     * @param heightMap 高度地图
+     * @return 代价地图
+     */
     private double[][] buildObstacleCostMap(ServerLevel level, int[][] heightMap) {
         int size = heightMap.length;
         double[][] costMap = new double[size][size];
@@ -116,14 +130,34 @@ public class RoutePlanner {
 
                 double cost = 0.0;
                 if (!state.isAir() && state.isSolid()) {
+                    // 固体方块，无法通过
                     cost = Double.POSITIVE_INFINITY;
                 } else if (state.getBlock() == Blocks.WATER || state.is(BlockTags.GEODE_INVALID_BLOCKS)) {
+                    // 水域或无效方块，增加代价
                     cost = 15.0;
                 } else if (state.getBlock() instanceof LeavesBlock) {
+                    // 树叶方块，轻微代价
                     cost = 2.0;
                 } else if (state.is(BlockTags.BEDS)) {
+                    // 床方块，高代价
                     cost = 100.0;
                 }
+                
+                // 检测周围是否有水域，扩大水域检测范围
+                // 如果在周围3格范围内检测到水，增加额外代价
+                for (int dx = -3; dx <= 3; dx++) {
+                    for (int dz = -3; dz <= 3; dz++) {
+                        if (dx == 0 && dz == 0) continue;
+                        BlockPos nearbyPos = new BlockPos(worldX + dx, railY, worldZ + dz);
+                        BlockState nearbyState = level.getBlockState(nearbyPos);
+                        if (nearbyState.getBlock() == Blocks.WATER) {
+                            // 根据距离调整代价，越近代价越高
+                            double distance = Math.sqrt(dx * dx + dz * dz);
+                            cost += 5.0 / (distance + 1.0);
+                        }
+                    }
+                }
+                
                 costMap[x][z] = cost;
             }
         }
@@ -131,6 +165,14 @@ public class RoutePlanner {
     }
 
 
+    /**
+     * 查找避开障碍物的路径
+     * @param heightMap 高度地图
+     * @param start 起点坐标
+     * @param end 终点坐标
+     * @param level 服务器世界
+     * @return 路径点列表
+     */
     public List<int[]> findPathAvoidObstacles(int[][] heightMap, int[] start, int[] end, ServerLevel level) {
         double[][] obstacleCost = buildObstacleCostMap(level, heightMap);
 

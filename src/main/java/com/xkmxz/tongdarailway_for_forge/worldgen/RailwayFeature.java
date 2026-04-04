@@ -159,6 +159,14 @@ public class RailwayFeature extends Feature<RailwayFeatureConfig> {
         return new Vec3(offX, 0, offZ);
     }
 
+    /**
+     * 放置路基结构
+     * 根据地形高度和水域情况选择合适的路基模板(地面、桥梁或隧道)
+     * @param railwayMap 铁路地图
+     * @param cPos 区块位置
+     * @param chunk 区块访问对象
+     * @param world 世界生成级别
+     */
     private static void placeRoadbed(RailwayMap railwayMap, ChunkPos cPos, ChunkAccess chunk, WorldGenLevel world) {
         var routes = railwayMap.routeMap.get(cPos);
         for (CurveRoute.CompositeCurve route : routes) {
@@ -196,16 +204,20 @@ public class RailwayFeature extends Feature<RailwayFeatureConfig> {
                     BlockPos nearestPos = new BlockPos((int) nearest.x, (int) nearest.y, (int) nearest.z);
                     int h = world.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, nearestPos.getX(), nearestPos.getZ());
 
-                    boolean conditionBridge = nearest.y > h + 10;
+                    // 检测是否为水域 - 检查当前位置和海平面位置是否有水
+                    boolean isWater = checkIsWater(world, nearestPos, h);
+                    
+                    // 判断使用哪种结构模板
+                    boolean conditionBridge = nearest.y > h + 10 || isWater; // 高度差大或为水域时使用桥梁
                     boolean conditionTunnel = nearest.y < h - 9;
 
                     RailwayTemplate structureTemplate;
                     if (conditionBridge) {
-                        structureTemplate = bridge;
+                        structureTemplate = bridge; // 使用桥梁模板跨越水域或高度差
                     } else if (conditionTunnel) {
-                        structureTemplate = tunnel;
+                        structureTemplate = tunnel; // 使用隧道模板穿越山体
                     } else {
-                        structureTemplate = ground;
+                        structureTemplate = ground; // 使用地面路基模板
                     }
 
                     for (int oy = structureTemplate.getLowerBound(); oy <= structureTemplate.getUpperBound(); oy++) {
@@ -230,5 +242,43 @@ public class RailwayFeature extends Feature<RailwayFeatureConfig> {
                 }
             }
         }
+    }
+    
+    /**
+     * 检查指定位置是否为水域
+     * 检测海平面高度和地面高度是否有水
+     * @param world 世界生成级别
+     * @param pos 位置
+     * @param groundHeight 地面高度
+     * @return 是否为水域
+     */
+    private static boolean checkIsWater(WorldGenLevel world, BlockPos pos, int groundHeight) {
+        // 检查地面位置是否有水
+        BlockPos groundPos = new BlockPos(pos.getX(), groundHeight, pos.getZ());
+        BlockState groundState = world.getBlockState(groundPos);
+        if (groundState.getBlock() == net.minecraft.world.level.block.Blocks.WATER) {
+            return true;
+        }
+        
+        // 检查海平面位置是否有水
+        int seaLevel = 63; // Minecraft默认海平面高度
+        BlockPos seaPos = new BlockPos(pos.getX(), seaLevel, pos.getZ());
+        BlockState seaState = world.getBlockState(seaPos);
+        if (seaState.getBlock() == net.minecraft.world.level.block.Blocks.WATER) {
+            return true;
+        }
+        
+        // 检查周围3格范围内是否有水
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dz = -2; dz <= 2; dz++) {
+                BlockPos nearbyPos = new BlockPos(pos.getX() + dx, groundHeight, pos.getZ() + dz);
+                BlockState nearbyState = world.getBlockState(nearbyPos);
+                if (nearbyState.getBlock() == net.minecraft.world.level.block.Blocks.WATER) {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
     }
 }
