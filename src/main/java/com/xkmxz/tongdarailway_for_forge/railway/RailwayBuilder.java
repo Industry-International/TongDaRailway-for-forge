@@ -20,7 +20,14 @@ public class RailwayBuilder {
     public final Map<RegionPos, int[][]> regionHeightMap = new ConcurrentHashMap<>();
 
     private final LinkedBlockingQueue<Runnable> regionRailwayLoadQueue = new LinkedBlockingQueue<Runnable>();
-    private final ThreadPoolExecutor regionRailwayLoadPoolExecutor = new ThreadPoolExecutor(64, 1024, 1, TimeUnit.DAYS, regionRailwayLoadQueue);
+    // 优化线程池配置：采用折中方案，平衡性能和资源消耗
+    private final ThreadPoolExecutor regionRailwayLoadPoolExecutor = new ThreadPoolExecutor(
+            16, // 核心线程数：适中值，保证足够的处理能力
+            64, // 最大线程数：适中值，避免过度消耗资源
+            30, // 线程保活时间：30秒，及时释放空闲线程
+            TimeUnit.SECONDS, 
+            regionRailwayLoadQueue
+    );
     private final WorldGenRegion level;
 
     private RailwayBuilder(WorldGenRegion level) {

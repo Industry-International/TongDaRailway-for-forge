@@ -3,6 +3,7 @@ package com.xkmxz.tongdarailway_for_forge.util;
 import com.xkmxz.tongdarailway_for_forge.railway.RegionPos;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.xkmxz.tongdarailway_for_forge.Config;
 import static com.xkmxz.tongdarailway_for_forge.railway.RailwayMap.samplingNum;
@@ -31,6 +32,9 @@ public class AStarPathfinder {
             1.414, 1.414, 1.414, 1.414           // 对角线方向
     };
 
+    // 路径缓存：缓存已计算的路径，避免重复计算
+    private static final Map<String, List<int[]>> pathCache = new ConcurrentHashMap<>();
+    
     /**
      * 查找路径
      * @param image 高度图
@@ -51,6 +55,13 @@ public class AStarPathfinder {
         if (!isValidCoordinate(start[0], start[1], rows, cols) ||
                 !isValidCoordinate(end[0], end[1], rows, cols)) {
             return new ArrayList<>();
+        }
+        
+        // 生成缓存键
+        final String cacheKey = generateCacheKey(start, end, rows, cols);
+        // 检查缓存中是否已有路径
+        if (pathCache.containsKey(cacheKey)) {
+            return new ArrayList<>(pathCache.get(cacheKey));
         }
 
         // 优先队列，按f值排序
@@ -85,7 +96,19 @@ public class AStarPathfinder {
 
             // 到达终点，重建路径
             if (currentX == end[0] && currentY == end[1]) {
-                return reconstructPath(cameFrom, current);
+                List<int[]> path = reconstructPath(cameFrom, current);
+                // 缓存路径
+                pathCache.put(cacheKey, path);
+                // 限制缓存大小
+                if (pathCache.size() > 1000) {
+                    // 移除最早的缓存项
+                    Iterator<String> iterator = pathCache.keySet().iterator();
+                    while (iterator.hasNext() && pathCache.size() > 1000) {
+                        iterator.next();
+                        iterator.remove();
+                    }
+                }
+                return path;
             }
 
             inOpenSet[currentX][currentY] = false;
@@ -126,6 +149,18 @@ public class AStarPathfinder {
 
         // 开放集合为空但未到达终点，说明无路径
         return new ArrayList<>();
+    }
+    
+    /**
+     * 生成缓存键
+     * @param start 起点坐标
+     * @param end 终点坐标
+     * @param rows 高度图行数
+     * @param cols 高度图列数
+     * @return 缓存键
+     */
+    private static String generateCacheKey(int[] start, int[] end, int rows, int cols) {
+        return start[0] + "," + start[1] + "->" + end[0] + "," + end[1] + "_" + rows + "x" + cols;
     }
 
     /**
