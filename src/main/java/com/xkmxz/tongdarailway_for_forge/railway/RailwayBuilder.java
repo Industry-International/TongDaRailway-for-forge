@@ -82,7 +82,9 @@ public class RailwayBuilder {
         }
 
         // ========== 内存泄漏修复：限制缓存大小 ==========
-        if (regionRailways.size() > 200) {   // 阈值可调，200 区域约对应 200 * 128*128 方块
+        // 调整缓存阈值，平衡内存使用和性能
+        int cacheThreshold = 100; // 减少缓存阈值，降低内存使用
+        if (regionRailways.size() > cacheThreshold) {   // 阈值可调，100 区域约对应 100 * 128*128 方块
             List<RegionPos> toRemove = new ArrayList<>();
             int removeCount = regionRailways.size() / 2;   // 移除一半
             for (RegionPos pos : regionRailways.keySet()) {

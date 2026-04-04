@@ -162,10 +162,15 @@ public class RailwayFeature extends Feature<RailwayFeatureConfig> {
     private static void placeRoadbed(RailwayMap railwayMap, ChunkPos cPos, ChunkAccess chunk, WorldGenLevel world) {
         var routes = railwayMap.routeMap.get(cPos);
         for (CurveRoute.CompositeCurve route : routes) {
-            int seed = route.getSegments().size();
-            RailwayTemplate ground = RoadbedManager.getRandomGround(seed);
-            RailwayTemplate bridge = RoadbedManager.getRandomBridge(seed);
-            RailwayTemplate tunnel = RoadbedManager.getRandomTunnel(seed);
+            // 使用路径哈希值作为种子，确保模板选择的一致性，解决桥梁连接问题
+            long routeSeed = route.hashCode();
+            long groundSeed = routeSeed + 12345;
+            long bridgeSeed = routeSeed + 67890;
+            long tunnelSeed = routeSeed + 13579;
+            
+            RailwayTemplate ground = RoadbedManager.getRandomGround((int) groundSeed);
+            RailwayTemplate bridge = RoadbedManager.getRandomBridge((int) bridgeSeed);
+            RailwayTemplate tunnel = RoadbedManager.getRandomTunnel((int) tunnelSeed);
             var testPoint = new CurveRoute.Point3D(cPos.x*16+8, 80, cPos.z*16+8);
             CurveRoute.NearestPointResult result0 = route.findNearestPoint(testPoint);
 

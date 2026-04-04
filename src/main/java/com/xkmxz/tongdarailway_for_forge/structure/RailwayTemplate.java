@@ -55,7 +55,11 @@ public class RailwayTemplate {
     // Coordinate system origin at z axis direction midpoint
     public BlockState getBlockState(double x, double y, double z) {
         // Map to original coordinates
-        int originalX = (int) Math.floor(x) % getWidth();
+        int originalX = (int) Math.floor(x);
+        // 确保模运算结果始终为正值，避免负坐标问题
+        originalX = originalX % getWidth();
+        if (originalX < 0) originalX += getWidth();
+        
         int originalY = (int) Math.round(y + roadbedHeight + 1);
         int originalZ = (int) Math.floor(z + getDepth() / 2.0);
 

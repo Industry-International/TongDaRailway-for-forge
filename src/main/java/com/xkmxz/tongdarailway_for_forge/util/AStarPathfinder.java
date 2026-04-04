@@ -116,11 +116,18 @@ public class AStarPathfinder {
         return x >= 0 && x < rows && y >= 0 && y < cols;
     }
 
-    // Heuristic function using Euclidean distance
+    // Heuristic function using Euclidean distance with terrain height consideration
     private static double heuristic(int[] a, int[] b) {
         int dx = Math.abs(a[0] - b[0]);
         int dy = Math.abs(a[1] - b[1]);
-        return Math.sqrt(dx * dx + dy * dy);
+        // 考虑地形高度因素，增加高度差的权重
+        int dz = 0;
+        if (a.length > 2 && b.length > 2) {
+            dz = Math.abs(a[2] - b[2]);
+        }
+        // 高度权重系数，可根据实际情况调整
+        double heightWeight = 0.5;
+        return Math.sqrt(dx * dx + dy * dy) + dz * heightWeight;
     }
 
     // Reconstruct path
