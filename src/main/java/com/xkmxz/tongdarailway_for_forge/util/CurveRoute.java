@@ -193,39 +193,15 @@ public class CurveRoute {
 
         @Override
         public List<Point3D> rasterize(int n) {
-            List<Point3D> rasterPoints = new ArrayList<>();
-
-            int x0 = (int) Math.round(start.x/n);
-            int z0 = (int) Math.round(start.z/n);
-            int x1 = (int) Math.round(end.x/n);
-            int z1 = (int) Math.round(end.z/n);
-
-            int dx = Math.abs(x1 - x0);
-            int dz = Math.abs(z1 - z0);
-            int sx = x0 < x1 ? 1 : -1;
-            int sz = z0 < z1 ? 1 : -1;
-            int err = dx - dz;
-
-            int x = x0;
-            int z = z0;
-
-            while (true) {
-                rasterPoints.add(new Point3D(x, 0, z));
-
-                if (x == x1 && z == z1) break;
-
-                int e2 = 2 * err;
-                if (e2 > -dz) {
-                    err -= dz;
-                    x += sx;
-                }
-                if (e2 < dx) {
-                    err += dx;
-                    z += sz;
-                }
+            List<Point3D> points = new ArrayList<>();
+            double len = getLength();
+            int steps = (int) Math.ceil(len);  // 步数按长度取整
+            for (int i = 0; i <= steps; i++) {
+                double t = i / (double) steps;
+                Point3D p = evaluate(t);
+                points.add(new Point3D(p.x / n, 0, p.z / n));
             }
-
-            return rasterPoints;
+            return points;
         }
     }
 

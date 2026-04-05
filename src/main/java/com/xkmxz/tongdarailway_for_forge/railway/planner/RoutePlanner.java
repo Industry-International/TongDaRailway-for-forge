@@ -529,22 +529,33 @@ public class RoutePlanner {
 
         public void addLine(Vec3 start, Vec3 end) {
             way.addSegment(new CurveRoute.LineSegment(start, end));
-            int n = Math.max((int) Math.abs(start.x - end.x), (int) Math.abs(start.z - end.z));
-            for (int k = 0; k <= n; k++) {
-                int x = (int) (start.x + MyMth.getSign(end.x - start.x) * k);
-                int z = (int) (start.z + MyMth.getSign(end.z - start.z) * k);
-                trackPutInfos.add(TrackPutInfo.getByDir(new BlockPos(x, (int) start.y, z), end.subtract(start), null));
+            BlockPos startPos = BlockPos.containing(start);
+            BlockPos endPos = BlockPos.containing(end);
+            int dx = endPos.getX() - startPos.getX();
+            int dz = endPos.getZ() - startPos.getZ();
+            int steps = Math.max(Math.abs(dx), Math.abs(dz));
+            for (int i = 0; i <= steps; i++) {
+                double t = i / (double) steps;
+                int x = (int) Math.round(startPos.getX() + dx * t);
+                int z = (int) Math.round(startPos.getZ() + dz * t);
+                int y = (int) Math.round(start.y + (end.y - start.y) * t);
+                trackPutInfos.add(TrackPutInfo.getByDir(new BlockPos(x, y, z), end.subtract(start), null));
             }
         }
 
         public void addBezier(Vec3 start, Vec3 startDir, Vec3 endOffset, Vec3 endDir) {
-            if (Math.abs(startDir.dot(endDir)) > 0.9999 && startDir.dot(endOffset.normalize()) > 0.9999) {
-                way.addSegment(new CurveRoute.LineSegment(start, start.add(endOffset)));
+            if (Math.abs(startDir.dot(endDir)) > 0.9999 && startDir.dot(endOffset.normalize()) > 0.9999 && Math.abs(endOffset.y) < 0.1) {
+                // 直线段：调用 addLine 生成整条铁轨
+                addLine(start, start.add(endOffset));
             } else {
+                // 曲线段
                 way.addSegment(CurveRoute.CubicBezier.getCubicBezier(start, startDir, endOffset, endDir));
+                trackPutInfos.add(TrackPutInfo.getByDir(
+                        new BlockPos((int) start.x, (int) start.y, (int) start.z),
+                        startDir,
+                        new TrackPutInfo.BezierInfo(start, startDir, endOffset, endDir)
+                ));
             }
-            trackPutInfos.add(TrackPutInfo.getByDir(new BlockPos((int) start.x, (int) start.y, (int) start.z),
-                    startDir, new TrackPutInfo.BezierInfo(start, startDir, endOffset, endDir)));
         }
     }
 }
