@@ -1,6 +1,7 @@
 package com.xkmxz.tongdarailway_for_forge.util;
 
 import com.xkmxz.tongdarailway_for_forge.railway.RegionPos;
+import net.createmod.catnip.math.VecHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.phys.Vec3;
@@ -35,9 +36,12 @@ public class MyMth {
     }
 
     // ========== 新增辅助方法（用于贝塞尔曲线计算） ==========
+    //确保 MyMth.getCurveStart 与原版行为一致
     public static Vec3 getCurveStart(BlockPos pos, Vec3 dir) {
-        // 返回方块中心 + 方向向量的一半（半个方块偏移）
-        return Vec3.atCenterOf(pos).add(dir.scale(0.5));
+        boolean vertical = dir.y != 0;
+        return VecHelper.getCenterOf(pos)
+                .add(0, (vertical ? 0 : -0.5f), 0)
+                .add(dir.scale(0.5));
     }
 
     public static Vec3 myCeil(Vec3 vec) {
